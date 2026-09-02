@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Role Selection</title>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            /* Düsterer Wald mit Vollmond als Hintergrund */
+            background:
+                    radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.3) 0%, rgba(200, 220, 255, 0.15) 15%, transparent 30%),
+                    radial-gradient(circle at 50% 15%, #e6f2ff 0%, #a3c2c2 8%, rgba(20, 30, 48, 0.8) 25%),
+                    linear-gradient(to bottom, #0b1021 0%, #080c18 50%, #020307 100%);
+            background-attachment: fixed;
+            color: #e0e6ed;
+        }
+
+        /* Subtiler Nebel-Effekt über dem Hintergrund */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+
+        /* Scrollbare Liste für die Rollen */
+        .roles-list {
+            width: 90%;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 5px;
+            z-index: 1;
+        }
+
+        /* Custom Scrollbar */
+        .roles-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .roles-list::-webkit-scrollbar-thumb {
+            background: rgba(168, 35, 35, 0.5);
+            border-radius: 4px;
+        }
+
+        /* Einzelne Rollen-Karte */
+        .role-card {
+            background: rgba(13, 19, 33, 0.75);
+            border: 1.5px solid rgba(140, 30, 30, 0.4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .role-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-icon {
+            font-size: 1.6rem;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .role-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f0f4f8;
+        }
+
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        /* Ausgewählter Zustand */
+        .role-card.selected {
+            border-color: #a82323;
+            background: rgba(45, 15, 20, 0.85);
+            box-shadow: 0 0 12px rgba(168, 35, 35, 0.5);
+        }
+
+        .role-card.selected .checkbox {
+            background: #a82323;
+            border-color: #a82323;
+            color: #fff;
+        }
+
+        /* Unterer Bestätigen-Button */
+        .confirm-btn {
+            width: 90%;
+            margin-top: 15px;
+            padding: 14px;
+            background: rgba(168, 35, 35, 0.85);
+            border: 1.5px solid #a82323;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 20px rgba(168, 35, 35, 0.4);
+            z-index: 1;
+            transition: all 0.2s ease;
+        }
+
+        .confirm-btn:active {
+            transform: scale(0.98);
+            background: #8c1e1e;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Выберите роли для игры:</h2>
+
+<div class="roles-list" id="rolesList">
+    <!-- Rollen-Liste wird dynamisch gerendert -->
+</div>
+
+<button class="confirm-btn" onclick="submitRoles()">Подтвердить</button>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    // Rollen-Daten mit Identifikatoren und passenden Emojis
+    const rolesData = [
+        { id: "werwolf1", title: "Оборотень 1", icon: "🐺" },
+        { id: "werwolf2", title: "Оборотень 2", icon: "🐺" },
+        { id: "werwolf3", title: "Оборотень 3", icon: "🐺" },
+        { id: "amo", title: "Амур", icon: "💘" },
+        { id: "hexe", title: "Ведьма", icon: "🧪" },
+        { id: "jaeger", title: "Охотник", icon: "🏹" },
+        { id: "vanhelsing", title: "Ван Хельсинг", icon: "⚔️" },
+        { id: "priester", title: "Священник", icon: "✝️" },
+        { id: "baerenfuehrer", title: "Укротитель Медведей", icon: "🐻" },
+        { id: "pyhopath", title: "Психопат", icon: "🪓" },
+        { id: "wildekind", title: "Маугли", icon: "🐾" },
+        { id: "detektiv", title: "Детектив", icon: "🔍" },
+        { id: "hure", title: "Блудница", icon: "💋" },
+        { id: "seherin", title: "Гадалка", icon: "🔮" },
+        { id: "zwilling1", title: "Близнец 1", icon: "👥" },
+        { id: "zwilling2", title: "Близнец 2", icon: "👥" },
+        { id: "dorfbewohner1", title: "Мирный 1", icon: "👨‍🌾" },
+        { id: "dorfbewohner2", title: "Мирный 2", icon: "👩‍🌾" }
+    ];
+
+    // Set zur Speicherung der ausgewählten Rollen
+    const selectedRoles = new Set();
+
+    const listContainer = document.getElementById('rolesList');
+
+    // Rollen in das DOM einfügen
+    rolesData.forEach(role => {
+        const card = document.createElement('div');
+        card.className = 'role-card';
+        card.onclick = () => toggleRole(role.id, card);
+
+        card.innerHTML = `
+                <div class="role-info">
+                    <span class="role-icon">${role.icon}</span>
+                    <span class="role-title">${role.title}</span>
+                </div>
+                <div class="checkbox" id="check-${role.id}"></div>
+            `;
+
+        listContainer.appendChild(card);
+    });
+
+    // Rolle aus-/abwählen
+    function toggleRole(roleId, cardElement) {
+        const checkElement = document.getElementById(`check-${roleId}`);
+
+        if (selectedRoles.has(roleId)) {
+            selectedRoles.delete(roleId);
+            cardElement.classList.remove('selected');
+            checkElement.innerText = '';
+        } else {
+            selectedRoles.add(roleId);
+            cardElement.classList.add('selected');
+            checkElement.innerText = '✓';
+        }
+    }
+
+    // Auswahl an C#-Bot senden
+    function submitRoles() {
+        const payload = {
+            action: "confirmRoles",
+            roles: Array.from(selectedRoles)
+        };
+
+        tg.sendData(JSON.stringify(payload));
+        tg.close();
+    }
+</script>
+</body>
+</html>
