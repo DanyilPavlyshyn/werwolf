@@ -250,7 +250,7 @@
     rolesData.forEach(role => {
         const card = document.createElement('div');
         card.className = 'role-card';
-        card.onclick = () => toggleRole(role.id, card);
+        card.onclick = () => toggleRole(role, card);
 
         card.innerHTML = `
             <div class="role-info">
@@ -265,15 +265,17 @@
     });
 
     // Rolle aus-/abwählen
-    function toggleRole(roleId, cardElement) {
-        const checkElement = document.getElementById(`check-${roleId}`);
-
-        if (selectedRoles.has(roleId)) {
-            selectedRoles.delete(roleId);
+    function toggleRole(role, cardElement) {
+        const checkElement = document.getElementById(`check-${role.id}`);
+        const existingRole = Array.from(selectedRoles).find(sr => role.id === sr.id);
+        
+        if (existingRole) {
+            selectedRoles.delete(existingRole);
             cardElement.classList.remove('selected');
             checkElement.innerText = '';
         } else {
-            selectedRoles.add(roleId);
+            const selectedRole = { id: role.id, dataId: role.dataId };
+            selectedRoles.add(selectedRole);
             cardElement.classList.add('selected');
             checkElement.innerText = '✓';
         }
@@ -281,8 +283,7 @@
 
     // Auswahl an C#-Bot senden
     function submitRoles() {
-        const roles = Array.from(selectedRoles);
-        roles.forEach(r => r.replace(/\d/g, ''));
+        const roles = Array.from(selectedRoles).map((role) => role.dataId);
         
         const payload = {
             action: "confirmRoles",
