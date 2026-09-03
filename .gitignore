@@ -1,0 +1,16 @@
+/Werwolf_Bot.csproj
+# Build & Output Ordner (.NET)
+bin/
+obj/
+*.sln
+
+# JetBrains Rider / IntelliJ Einstellungen
+.idea/
+*.user
+*.useros
+
+# macOS Systemdateien
+.DS_Store
+
+#Test data
+Werwolf_Bot.Tests/

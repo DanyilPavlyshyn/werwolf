@@ -2,142 +2,287 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Werewolf</title>
-    <!-- Telegram Web App SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вервольф | Telegram Bot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: rgba(22, 28, 38, 0.8);
+            --accent-red: #e53935;
+            --accent-glow: rgba(229, 57, 53, 0.4);
+            --border-color: #1e2638;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            user-select: none;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            /* Düsterer Wald mit Vollmond als Hintergrund */
-            background:
-                    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.3) 0%, rgba(200, 220, 255, 0.15) 15%, transparent 30%),
-                    radial-gradient(circle at 50% 20%, #e6f2ff 0%, #a3c2c2 8%, rgba(20, 30, 48, 0.8) 25%),
-                    linear-gradient(to bottom, #0b1021 0%, #080c18 50%, #020307 100%);
-            background-attachment: fixed;
-            color: #e0e6ed;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image:
+                    radial-gradient(circle at 50% 0%, rgba(229, 57, 53, 0.15), transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(30, 38, 56, 0.5), transparent 40%);
         }
 
-        /* Subtiler Nebel-Effekt über dem Hintergrund */
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
-            pointer-events: none;
+        header {
+            padding: 2rem 1rem;
+            text-align: center;
         }
 
-        /* Hauptcontainer: Nimmt ca. 80% der Höhe/Breite ein */
         .container {
-            width: 85%;
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
         }
 
-        /* Die zwei großen Auswahl-Karten */
-        .choice-card {
-            flex: 1;
-            background: rgba(13, 19, 33, 0.75);
-            border: 2px solid rgba(140, 30, 30, 0.5);
-            border-radius: 16px;
+        /* Hero Section */
+        .hero {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 20px;
-            cursor: pointer;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7), inset 0 0 15px rgba(0, 0, 0, 0.5);
+            padding: 4rem 1rem 3rem;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 3.2rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 650px;
+            margin-bottom: 2.5rem;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%);
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            text-decoration: none;
+            box-shadow: 0 4px 25px var(--accent-glow);
             transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Hover & Aktiver Zustand */
-        .choice-card:hover, .choice-card:active {
-            transform: scale(1.02);
-            border-color: #a82323;
-            background: rgba(25, 33, 52, 0.85);
-            box-shadow: 0 0 20px rgba(168, 35, 35, 0.6), inset 0 0 20px rgba(168, 35, 35, 0.3);
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(229, 57, 53, 0.6);
         }
 
-        .icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        .cta-button svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
         }
 
-        .title {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #f0f4f8;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            letter-spacing: 0.5px;
+        /* Cards Showcase */
+        .showcase {
+            padding: 4rem 0;
         }
 
-        .subtitle {
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #fff;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            justify-items: center;
+        }
+
+        .card-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 240px;
+        }
+
+        .card-item:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-red);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            object-fit: cover;
+        }
+
+        .card-item h3 {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 0.3rem;
+        }
+
+        .card-item p {
             font-size: 0.9rem;
-            color: #9ab0c7;
-            margin-top: 6px;
+            color: var(--text-muted);
         }
 
-        /* Spezieller roter Akzent für die Host-Rolle */
-        .host-card {
-            border-color: rgba(168, 35, 35, 0.6);
+        /* Features Section */
+        .features {
+            padding: 4rem 0;
+            background: rgba(15, 21, 32, 0.6);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
         }
 
-        /* Spezieller bläulicher Akzent für die Spieler-Rolle */
-        .player-card {
-            border-color: rgba(45, 90, 140, 0.6);
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
         }
 
-        .player-card:hover, .player-card:active {
-            border-color: #3b82f6;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), inset 0 0 20px rgba(59, 130, 246, 0.2);
+        .feature-box {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .feature-box h4 {
+            font-size: 1.25rem;
+            color: var(--accent-red);
+            margin-bottom: 0.8rem;
+        }
+
+        .feature-box p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: var(--accent-red);
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; }
+            .hero p { font-size: 1rem; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="choice-card host-card" onclick="selectRole('create_game')">
-        <div class="icon">🐺</div>
-        <div class="title">Создать игру</div>
-        <div class="subtitle">(быть ведущим)</div>
-    </div>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Вервольф</h1>
+        <p>Захватывающая психологическая игра прямо в Telegram. Скрывайтесь, вычисляйте предателей и ведите свою фракцию к победе!</p>
 
-    <div class="choice-card player-card" onclick="selectRole('join_game')">
-        <div class="icon">📜</div>
-        <div class="title">Присоединиться</div>
-        <div class="subtitle">(играть)</div>
-    </div>
+        <a href="https://t.me/werwolf_cards_bot" class="cta-button" target="_blank">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-2.02 9.52c-.15.68-.56.84-1.13.52l-3.1-2.28-1.5 1.44c-.17.17-.31.31-.63.31l.22-3.16 5.76-5.2c.25-.22-.05-.34-.39-.12l-7.12 4.48-3.07-.96c-.67-.21-.68-.67.14-.99l12.01-4.63c.55-.2 1.04.14.83.87z"/>
+            </svg>
+            Играть в Telegram
+        </a>
+    </section>
+
+    <!-- Cards Showcase Section -->
+    <section class="showcase">
+        <h2 class="section-title">Уникальные Роли</h2>
+        <div class="cards-grid">
+
+            <div class="card-item">
+                <!-- Relative Pfadauflösung zu den Bildern aus deinem Assets/Cards/ru Ordner -->
+                <img src="../Cards/ru/werwolf.png" alt="Оборотень" onerror="this.src='https://via.placeholder.com/200x280?text=Werwolf'">
+                <h3>Оборотень</h3>
+                <p>Просыпается ночью, чтобы выбрать новую жертву.</p>
+            </div>
+
+            <div class="card-item">
+                <img src="../Cards/ru/hexe.png" alt="Ведьма" onerror="this.src='https://via.placeholder.com/200x280?text=Hexe'">
+                <h3>Ведьма</h3>
+                <p>Обладает зельем исцеления и смертельным ядом.</p>
+            </div>
+
+            <div class="card-item">
+                <img src="../Cards/ru/seherin.png" alt="Провидец" onerror="this.src='https://via.placeholder.com/200x280?text=Seherin'">
+                <h3>Провидец</h3>
+                <p>Каждую ночь узнает истинную сущность одного из игроков.</p>
+            </div>
+
+            <div class="card-item">
+                <img src="../Cards/ru/detektiv.png" alt="Детектив" onerror="this.src='https://via.placeholder.com/200x280?text=Detektiv'">
+                <h3>Детектив</h3>
+                <p>Ищет улики и помогает мирным жителям выявить зло.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Особенности Бота</h2>
+            <div class="features-grid">
+                <div class="feature-box">
+                    <h4>⚡ Быстрый старт</h4>
+                    <p>Никаких сложных установок. Добавьте бота в чат или играйте напрямую через удобный WebApp-интерфейс.</p>
+                </div>
+                <div class="feature-box">
+                    <h4>🎨 Красочные карты</h4>
+                    <p>Каждая роль имеет уникальные иллюстрации и понятное описание для комфортной игры.</p>
+                </div>
+                <div class="feature-box">
+                    <h4>🌐 Мультиязычность</h4>
+                    <p>Бот поддерживает несколько языков, позволяя играть с друзьями со всего мира.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© Werwolf Bot | Присоединяйтесь к игре: <a href="https://t.me/werwolf_cards_bot" target="_blank">@werwolf_cards_bot</a></p>
+    </footer>
 </div>
 
-<script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    function selectRole(role) {
-        const data = {
-            action: role
-        };
-
-        tg.sendData(JSON.stringify(data));
-    }
-</script>
 </body>
 </html>
