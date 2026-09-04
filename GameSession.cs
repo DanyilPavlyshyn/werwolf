@@ -67,11 +67,12 @@ public class GameSession(long hostId)
             throw new Exception("Количество игроков не соответствует количеству ролей.");
         }
 
-        Random.Shared.Shuffle(_selectedRoles.ToArray());
+        var randomizedRoles = _selectedRoles.ToArray();
+        Random.Shared.Shuffle(randomizedRoles);
 
-        for (int i = 0; i < _selectedRoles.Count; i++)
+        for (int i = 0; i < randomizedRoles.Length; i++)
         {
-            Players[i].Role = _selectedRoles[i];
+            Players[i].Role = randomizedRoles[i];
         }
     }
 }
