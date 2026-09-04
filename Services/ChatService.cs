@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Werwolf_Bot.dto;
 
 namespace Werwolf_Bot.services;
@@ -98,6 +99,14 @@ public class ChatService(
                 {
                     await SendPlayerListToHostAsync(gameSession);
                 });
+                
+                await bot.SendMessage(
+                    chatId: hostId,
+                    text: $"Отлично, роли выбраны, теперь сообщи Id игрокам и ожидай их подключения. ID:<blockquote>{gameSession.Id.ToUpper()}</blockquote>",
+                    parseMode: ParseMode.Html,
+                    replyMarkup: ButtonsService.GetSessionCancelButtons(),
+                    cancellationToken: cancellationToken
+                );
             }
         }
     }
@@ -163,14 +172,15 @@ public class ChatService(
         
         List<string> roles = gameSession.GetSelectedRoles();
         var roleObjects = roles
-            .Select(localService.GetRole)
+            .Select(role => localService.GetRole(role))
             .OrderBy(r => r.NightPrio)
             .ToList();
-        roleObjects.ForEach(role => roleDescriptions.AppendLine($"{role.Title} - {role.Description}"));
+        roleObjects.ForEach(role => roleDescriptions.AppendLine($"<b>{role.Title}</b>: {role.Description}"));
             
         await bot.SendMessage(
         chatId: gameSession.HostId,
-        text: $"Описание ролей:\n{roleDescriptions}",
+        text: $"<blockquote><b>Описание ролей</b>:\n{roleDescriptions}</blockquote>",
+        parseMode: ParseMode.Html,
         cancellationToken: cancellationToken
         );
         
@@ -191,7 +201,7 @@ public class ChatService(
         
         await bot.SendMessage(
             chatId: gameSession.HostId,
-            text: $"Порядок вызова ролей для первой ночи:\n{rulesFirstNight}\nПорядок вызова ролей со второй ночи:\n{rulesAllNights}\nХорошей игры! :)",
+            text: $"Называемые роли первой ночи:\n{rulesFirstNight}\nНазываемые роли со второй ночи:\n{rulesAllNights}\nХорошей игры! :)",
             cancellationToken: cancellationToken
         );
     }
@@ -202,8 +212,7 @@ public class ChatService(
         {
             var playerNames = gameSession.Players
                 .Select((p, i) => $"{i + 1}. {p.FirstName} {p.LastName}, @{p.Username}").ToList();
-            string playersList = $"Cписок игроков:\n\n" +
-                                 string.Join("\n", playerNames);
+            string playersList = $"Cписок игроков:\n\n{string.Join("\n", playerNames)}";
             
             await bot.SendMessage(
                 chatId: gameSession.HostId,
@@ -237,9 +246,10 @@ public class ChatService(
                 var filePath = $"Assets/Cards/ru/{player.Role}.png";
                 await using FileStream stream = System.IO.File.OpenRead(filePath);
                 await bot.SendPhoto(
-                    chatId: gameSession.HostId, // test: send Cards to host. Change to player.Id
+                    chatId: gameSession.HostId, // after test change to player.Id,
                     photo: InputFile.FromStream(stream, $"{player.Role}.png"),
-                    caption: $"Твоя роль: {player.Role}! Ознакомся с деталями на карточке."
+                    caption: $"Твоя роль - <b>{localService.GetRole(player.Role).Title}</b>!\nОзнакомся с деталями на карточке.\nХорошей игры! :)",
+                    parseMode: ParseMode.Html
                 );
             }
         }

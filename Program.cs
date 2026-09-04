@@ -16,9 +16,10 @@ using var cts = new CancellationTokenSource();
 SessionService sessionService = new SessionService();
 UserStateService userStateService = new UserStateService();
 var languageService = new LanguageService("ru");
+var loc = new LocalizationService();
+loc.LoadLanguage("ru");
 ChatService chatService = new ChatService(
     sessionService, userStateService, botClient, languageService, cts.Token);
-
 
 botClient.StartReceiving(
     updateHandler: HandleUpdateAsync,
@@ -40,16 +41,23 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
     var receiverId = updateMessage.Chat.Id;
     var step = userStateService.GetStep(receiverId);
 
-    Console.WriteLine($"Step: {step}");
+    Console.WriteLine($"User: {updateMessage.Chat.Username}, Step: {step}");
     Console.WriteLine("********");
     
     switch (step)
     {
         case UserStep.None:
             await chatService.GetChoosePlayModeScreen(receiverId);
+            
+            /* test as player
+            var s = sessionService.CreateSession(receiverId);
+            Console.WriteLine(s.Id);
+            s.SaveRoleSelection(new List<string>() { "amo" });
+            end test */ 
+            
             break;
         case UserStep.ChoosePlayMode:
-            await chatService.GetHostOrPlayerScreen(updateMessage,  receiverId);
+            await chatService.GetHostOrPlayerScreen(updateMessage, receiverId);
             break;
         case UserStep.EnterSessionId when updateMessage.Text is { } sessionId:
             await chatService.GetWaitingRoleScreen(updateMessage, sessionId);
@@ -65,13 +73,7 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
                 new Player(124, "TestUser1","Test1", "User1", false));
             session.AddPlayerToSession(
                 new Player(125, "TestUser2","Test2", "User2", false));
-            session.AddPlayerToSession(
-                new Player(123, "TestUser3","Test3", "User3", false));
-            session.AddPlayerToSession(
-                new Player(124, "TestUser4","Test4", "User4", false));
-            session.AddPlayerToSession(
-                new Player(125, "TestUser5","Test5", "User5", false));
-            /* end test */
+            //end test */
             
             break;
         case UserStep.WaitingPlayersToJoin:

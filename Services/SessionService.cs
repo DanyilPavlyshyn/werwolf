@@ -18,7 +18,8 @@ public class SessionService
     {
         try
         {
-            var session = ActiveSessions.Single(x => x.Id == sessionId);
+            var session = ActiveSessions.Single(x => string
+                .Equals(x.Id, sessionId, StringComparison.CurrentCultureIgnoreCase));
             player.SessionId = sessionId;
             session.AddPlayerToSession(player);
                 

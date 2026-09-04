@@ -54,4 +54,19 @@ public static class ButtonsService
             OneTimeKeyboard = true 
         };
     }
+
+    public static ReplyKeyboardMarkup GetSessionCancelButtons()
+    {
+        return new ReplyKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                new KeyboardButton("Отменить игру ❌")
+            }
+        })
+        {
+            ResizeKeyboard = true, 
+            OneTimeKeyboard = true 
+        };
+    }
 }
