@@ -18,8 +18,21 @@ public class ChatService(
     UserService userService,
     CancellationToken cancellationToken)
 {
-    public async Task GetChoosePlayModeScreen(TelegramUser user)
+    public async Task GetChooseLanguageScreen(TelegramUser user)
     {
+        user.SetStep(UserStep.ChooseLanguage);
+        await bot.SendMessage(
+            chatId: user.Id,
+            text: "Hi! Please choose your language:",
+            replyMarkup: ButtonsService.GetChooseLanguageButtons(),
+            cancellationToken: cancellationToken
+        );
+    }
+    public async Task GetChoosePlayModeScreen(Message message, TelegramUser user)
+    {
+        if (message.Text == null) return;
+        
+        user.SetLanguage(message.Text);
         user.SetStep(UserStep.ChoosePlayMode);
         await bot.SendMessage(
             chatId: user.Id,
@@ -47,6 +60,16 @@ public class ChatService(
             await bot.SendMessage(
                 chatId: message.Chat.Id,
                 text: "Хорошо, если введущий уже создал игру и сообщил тебе id, отправь мне его в чате:",
+                cancellationToken: cancellationToken
+            );
+        }
+        else if (message is { Text: "Change language 🌍" })
+        {
+            user.SetStep(UserStep.ChooseLanguage);
+            await bot.SendMessage(
+                chatId: user.Id,
+                text: "Hi! Please choose your language:",
+                replyMarkup: ButtonsService.GetChooseLanguageButtons(),
                 cancellationToken: cancellationToken
             );
         }
@@ -123,7 +146,7 @@ public class ChatService(
                 replyMarkup: ButtonsService.GetChoosePlayModeButtons(),
                 cancellationToken: cancellationToken
             );
-            user.ClearStep();
+            user.SetStep(UserStep.ChooseLanguage);
             return;
         }
 
@@ -139,13 +162,14 @@ public class ChatService(
             await bot.SendMessage(
                 chatId: user.Id,
                 text: "Игровая сессия отменена. \n\n Захочешь еще поиграть - пиши. :)",
+                replyMarkup: new ReplyKeyboardRemove(),
                 cancellationToken: cancellationToken
             );
         }
         
         // setting state to default and deleting Session to free space
-        userService.SetStepForUsers(gameSession.Players, UserStep.None);
-        user.ClearStep();
+        userService.SetStepForUsers(gameSession.Players, UserStep.ChooseLanguage);
+        user.SetStep(UserStep.ChooseLanguage);
         sessionService.DeleteSession(gameSession);
     }
 

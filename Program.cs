@@ -48,7 +48,10 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
     switch (user.Step)
     {
         case UserStep.None:
-            await chatService.GetChoosePlayModeScreen(user);
+            await chatService.GetChooseLanguageScreen(user);
+            break;
+        case UserStep.ChooseLanguage:
+            await chatService.GetChoosePlayModeScreen(update.Message, user);
             break;
         case UserStep.ChoosePlayMode:
             await chatService.GetHostOrPlayerScreen(update.Message, user);

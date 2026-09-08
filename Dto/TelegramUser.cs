@@ -13,6 +13,7 @@ public enum UserLanguage
 public enum UserStep
 {
     None,
+    ChooseLanguage,
     ChoosePlayMode,
     EnterSessionId,
     ChooseRoles,
@@ -33,9 +34,23 @@ public class TelegramUser(
     public UserStep Step { get; set; } = UserStep.None;
     public UserLanguage Language { get; set; } = UserLanguage.English;
     
-    public void ChangeLanguage(UserLanguage language)
+    public void SetLanguage(string language)
     {
-       Language = language;
+        switch (language)
+        {
+            case "EN 🇬🇧":
+                Language = UserLanguage.English;
+                break;
+            case "DE 🇩🇪":
+                Language = UserLanguage.German;
+                break;
+            case "UA 🇺🇦":
+                Language = UserLanguage.Ukrainian;
+                break;
+            case "EU 🇷🇺":
+                Language = UserLanguage.Russian;
+                break;
+        }
     }
 
     public void SetStep(UserStep step)

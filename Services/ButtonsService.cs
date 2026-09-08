@@ -5,6 +5,27 @@ namespace Werwolf_Bot.services;
 
 public static class ButtonsService 
 {
+    public static ReplyKeyboardMarkup GetChooseLanguageButtons()
+    {
+        return new ReplyKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                new KeyboardButton("EN 🇬🇧"),
+                new KeyboardButton("DE 🇩🇪")
+            },
+            new[]
+            {
+                new KeyboardButton("UA 🇺🇦"),
+                new KeyboardButton("RU 🇷🇺")
+            }
+        })
+        {
+            ResizeKeyboard = true, 
+            OneTimeKeyboard = true 
+        };
+    }
+    
     public static ReplyKeyboardMarkup GetChoosePlayModeButtons()
     {
         return new ReplyKeyboardMarkup(new[]
@@ -16,6 +37,10 @@ public static class ButtonsService
             new[]
             {
                 new KeyboardButton("Хочу играть 🐺")
+            },
+            new[]
+            {
+                new KeyboardButton("Change language 🌍")
             }
         })
         {
