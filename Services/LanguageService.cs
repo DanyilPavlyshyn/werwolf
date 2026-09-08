@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Werwolf_Bot.dto;
 
 namespace Werwolf_Bot.services;
 
@@ -73,7 +75,14 @@ public class LocalizationService
 {
     private readonly Dictionary<string, Dictionary<string, string>> _messages = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Dictionary<string, RoleInfo>> _roles = new(StringComparer.OrdinalIgnoreCase);
-
+    private readonly ConcurrentDictionary<string, UserLanguage> _lanCodes = new()
+    {
+        ["EN"] = UserLanguage.English,
+        ["DE"] = UserLanguage.German,
+        ["UA"] = UserLanguage.Ukrainian,
+        ["RU"] = UserLanguage.Russian
+    };
+    
     public void LoadLanguage(string langCode)
     {
         string filePath = Path.Combine(

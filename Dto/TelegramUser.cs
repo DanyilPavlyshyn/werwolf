@@ -32,4 +32,19 @@ public class TelegramUser(
     public string? LastName { get; set; } = lastName;
     public UserStep Step { get; set; } = UserStep.None;
     public UserLanguage Language { get; set; } = UserLanguage.English;
+    
+    public void ChangeLanguage(UserLanguage language)
+    {
+       Language = language;
+    }
+
+    public void SetStep(UserStep step)
+    {
+        Step = step;
+    }
+    
+    public void ClearStep()
+    {
+        Step = UserStep.None;
+    }
 }

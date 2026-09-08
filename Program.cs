@@ -15,12 +15,11 @@ var userService = new UserService();
 var botClient = new TelegramBotClient(telegramApiKey);
 using var cts = new CancellationTokenSource();
 SessionService sessionService = new SessionService();
-UserStateService userStateService = new UserStateService();
 var languageService = new LanguageService("ru");
 var loc = new LocalizationService();
 loc.LoadLanguage("ru");
 ChatService chatService = new ChatService(
-    sessionService, userStateService, botClient, languageService, cts.Token);
+    sessionService, botClient, languageService, userService, cts.Token);
 
 botClient.StartReceiving(
     updateHandler: HandleUpdateAsync,
@@ -31,7 +30,7 @@ botClient.StartReceiving(
 var me = await botClient.GetMe();
 Console.WriteLine($"Bot @{me.Username} has started.");
 
-// Hält den Prozess dauerhaft aktiv, bis Systemd den Dienst stoppt (SIGTERM):
+// Holds Process active
 await Task.Delay(-1, cts.Token);
 
 cts.Cancel();
@@ -42,36 +41,26 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
 {
     if (update.Message == null) return;
     var user = userService.GetUser(update.Message.Chat);
-    
-    var receiverId = update.Message.Chat.Id;
-    var step = userStateService.GetStep(receiverId);
 
-    Console.WriteLine($"User: {update.Message.Chat.Username}, Step: {step}");
+    Console.WriteLine($"User: {user.Username}, Step: {user.Step}");
     Console.WriteLine("********");
     
-    switch (step)
+    switch (user.Step)
     {
         case UserStep.None:
             await chatService.GetChoosePlayModeScreen(user);
-            
-            /* test as player
-            var s = sessionService.CreateSession(receiverId);
-            Console.WriteLine(s.Id);
-            s.SaveRoleSelection(new List<string>() { "amo" });
-            end test */ 
-            
             break;
         case UserStep.ChoosePlayMode:
-            await chatService.GetHostOrPlayerScreen(update.Message, receiverId);
+            await chatService.GetHostOrPlayerScreen(update.Message, user);
             break;
         case UserStep.EnterSessionId when update.Message.Text is { } sessionId:
             await chatService.GetWaitingRoleScreen(update.Message, sessionId);
             break;
         case UserStep.ChooseRoles:
-            await chatService.GetHostLobbyScreen(update, receiverId);
+            await chatService.GetHostLobbyScreen(update, user);
             
             /* test: Adding Players to Session */
-            var session = sessionService.GetGameSessionByHostId(receiverId);
+            var session = sessionService.GetGameSessionByHostId(user.Id);
             session.AddPlayerToSession(
                 new Player(123, "TestUser","Test", "User", false));
             session.AddPlayerToSession(
@@ -82,7 +71,7 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
             
             break;
         case UserStep.WaitingPlayersToJoin:
-            await chatService.StartOrCancelGame(update, receiverId);
+            await chatService.StartOrCancelGame(update, user);
             break;
     }
 }

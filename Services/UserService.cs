@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Werwolf_Bot.dto;
@@ -6,38 +7,35 @@ namespace Werwolf_Bot.services;
 
 public class UserService
 {
-    private List<TelegramUser> _users = new();
-    private readonly Dictionary<string, UserLanguage> _lanCodes = new()
-    {
-        ["EN"] = UserLanguage.English,
-        ["DE"] = UserLanguage.German,
-        ["UA"] = UserLanguage.Ukrainian,
-        ["RU"] = UserLanguage.Russian
-    };
+    private ConcurrentDictionary<long, TelegramUser> _users = new();
     
     public TelegramUser GetUser(Chat chat)
     {
-        var user = _users.FirstOrDefault(u => u.Id == chat.Id, null);
+        var user = _users.GetValueOrDefault(chat.Id, null);
         return user ?? CreateUser(chat);
     }
 
     private TelegramUser CreateUser(Chat chat)
     {
         var user = new TelegramUser(chat.Id, chat.Username, chat.FirstName, chat.LastName);
-        _users.Add(user);
+        _users[chat.Id] = user;
         return user;
     }
     
-    public void ChangeUserLanguage(TelegramUser user, string language)
+    public void SetStepForUsers(List<TelegramUser> users, UserStep step)
     {
-        user.Language = _lanCodes[language];
+        foreach (var user in users)
+        {
+            user.SetStep(step);
+        }
     }
-
+    
     public void SetStepForUsers(List<Player> players, UserStep step)
     {
         foreach (var player in players)
         {
-            player.Step = step;
+            var user = _users[player.Id];
+            user.SetStep(step);
         }
     }
 }

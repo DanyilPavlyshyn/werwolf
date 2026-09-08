@@ -12,15 +12,14 @@ namespace Werwolf_Bot.services;
 //</summary>
 public class ChatService(
     SessionService sessionService,
-    UserStateService userStateService,
     ITelegramBotClient bot,
     LanguageService localService,
+    UserService userService,
     CancellationToken cancellationToken)
 {
     public async Task GetChoosePlayModeScreen(TelegramUser user)
     {
-        //userStateService.SetStep(user.Id, UserStep.ChoosePlayMode);
-        user.Step = UserStep.ChoosePlayMode;
+        user.SetStep(UserStep.ChoosePlayMode);
         await bot.SendMessage(
             chatId: user.Id,
             text: "Привет! Хочешь играть или вести игру?",
@@ -29,13 +28,13 @@ public class ChatService(
         );
     }
 
-    public async Task GetHostOrPlayerScreen(Message message, long receiverId)
+    public async Task GetHostOrPlayerScreen(Message message, TelegramUser user)
     {
         if (message is { Text: "Хочу быть ведущим 📝" })
         {
-            userStateService.SetStep(receiverId, UserStep.ChooseRoles);
+            user.SetStep(UserStep.ChooseRoles);
             await bot.SendMessage(
-                chatId: message.Chat.Id,
+                chatId: user.Id,
                 text: "Отлично, теперь нужно выбрать роли. Количество ролей должно соответствовать количеству игроков.",
                 replyMarkup: ButtonsService.GetChooseRolesButtons(),
                 cancellationToken: cancellationToken
@@ -43,7 +42,7 @@ public class ChatService(
         }
         else if (message is { Text: "Хочу играть 🐺" })
         {
-            userStateService.SetStep(receiverId, UserStep.EnterSessionId);
+            user.SetStep(UserStep.EnterSessionId);
             await bot.SendMessage(
                 chatId: message.Chat.Id,
                 text: "Хорошо, если введущий уже создал игру и сообщил тебе id, отправь мне его в чате:",
@@ -83,9 +82,9 @@ public class ChatService(
         }
     }
 
-    public async Task GetHostLobbyScreen(Update update, long hostId)
+    public async Task GetHostLobbyScreen(Update update, TelegramUser user)
     {
-        var gameSession = sessionService.CreateSession(hostId);
+        var gameSession = sessionService.CreateSession(user.Id);
         
         if (update.Message.WebAppData.Data is { } data)
         {
@@ -95,14 +94,14 @@ public class ChatService(
             if (result?.action == "confirmRoles")
             {
                 gameSession.SaveRoleSelection(result.roles);
-                userStateService.SetStep(hostId, UserStep.WaitingPlayersToJoin);
+                user.SetStep(UserStep.WaitingPlayersToJoin);
                 gameSession.AddPlayersObserver(async (_, updatedPlayers) =>
                 {
                     await SendPlayerListToHostAsync(gameSession);
                 });
                 
                 await bot.SendMessage(
-                    chatId: hostId,
+                    chatId: user.Id,
                     text: $"Отлично, роли выбраны, теперь сообщи Id игрокам и ожидай их подключения. ID:<blockquote>{gameSession.Id.ToUpper()}</blockquote>",
                     parseMode: ParseMode.Html,
                     replyMarkup: ButtonsService.GetSessionCancelButtons(),
@@ -112,25 +111,24 @@ public class ChatService(
         }
     }
 
-    public async Task StartOrCancelGame(Update update, long hostId)
+    public async Task StartOrCancelGame(Update update, TelegramUser user)
     {
-        var gameSession = sessionService.GetGameSessionByHostId(hostId);
-        
+        var gameSession = sessionService.GetGameSessionByHostId(user.Id);
         if (gameSession == null)
         {
             await bot.SendMessage(
-                chatId: hostId,
+                chatId: user.Id,
                 text: "Игровая сессия не найдена. Создай новую или присоеденись.",
                 replyMarkup: ButtonsService.GetChoosePlayModeButtons(),
                 cancellationToken: cancellationToken
             );
-            userStateService.ClearStep(hostId);
+            user.ClearStep();
             return;
         }
 
         if (update.Message is { Text: "Раздать карты 🃏" })
         {
-            userStateService.SetStep(hostId, UserStep.GameStarted);
+            user.SetStep(UserStep.GameStarted);
             await SendRoleCardsToPlayersAsync(gameSession);
             await SendPlayersAndRolesToHostAsync(gameSession);
             await SendRulesToHostAsync(gameSession);
@@ -138,15 +136,15 @@ public class ChatService(
         else if (update.Message is { Text: "Отменить игру ❌" })
         {
             await bot.SendMessage(
-                chatId: hostId,
+                chatId: user.Id,
                 text: "Игровая сессия отменена. \n\n Захочешь еще поиграть - пиши. :)",
                 cancellationToken: cancellationToken
             );
         }
         
         // setting state to default and deleting Session to free space
-        userStateService.SetStepForPlayers(gameSession.Players, UserStep.None);
-        userStateService.SetStep(hostId, UserStep.None);
+        userService.SetStepForUsers(gameSession.Players, UserStep.None);
+        user.ClearStep();
         sessionService.DeleteSession(gameSession);
     }
 
