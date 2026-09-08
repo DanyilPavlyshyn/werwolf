@@ -3,6 +3,7 @@ using System.Text.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using Werwolf_Bot.dto;
 
 namespace Werwolf_Bot.services;
@@ -161,6 +162,7 @@ public class ChatService(
         await bot.SendMessage(
             chatId: gameSession.HostId,
             text: $"Роли разданы:\n\n{rolePlayerList}",
+            replyMarkup: new ReplyKeyboardRemove(),
             cancellationToken: cancellationToken
         );
     }
@@ -187,6 +189,9 @@ public class ChatService(
         
         for (int i = 0; i < roleObjects.Count; i++)
         {
+            if (roleObjects[i] == null) continue;
+            if (roleObjects[i] is { NightPrio: 0 }) continue;
+            
             rulesFirstNight.AppendLine($"{ i+1 }. { roleObjects[i].Title }");
         }
         
@@ -197,6 +202,9 @@ public class ChatService(
             
         for (int j = 0; j < rolesFromSecondNight.Count(); j++)
         {
+            if (rolesFromSecondNight[j] == null) continue;
+            if (rolesFromSecondNight[j] is { NightPrio: 0 }) continue;
+            
             rulesAllNights.AppendLine($"{ j+1 }. { rolesFromSecondNight[j].Title }");
         }
         
