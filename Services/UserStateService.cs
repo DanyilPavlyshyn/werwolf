@@ -4,17 +4,6 @@ using Werwolf_Bot.services;
 
 namespace Werwolf_Bot.services;
 
-public enum UserStep
-{
-    None,
-    ChoosePlayMode,
-    EnterSessionId,
-    ChooseRoles,
-    WaitingPlayersToJoin,
-    GameStarted
-}
-
-
 public class UserStateService
 {
     private readonly ConcurrentDictionary<long, UserStep> _steps = new();

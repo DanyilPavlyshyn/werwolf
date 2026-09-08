@@ -8,9 +8,10 @@ var telegramApiKey = Environment
 
 if (string.IsNullOrWhiteSpace(telegramApiKey))
 {
-    throw new InvalidOperationException("TELEGRAM_API_KEY is not set.");
+    throw new InvalidOperationException("TELEGRAM_WERWOLF_API_KEY is not set.");
 }
 
+var userService = new UserService();
 var botClient = new TelegramBotClient(telegramApiKey);
 using var cts = new CancellationTokenSource();
 SessionService sessionService = new SessionService();
@@ -28,8 +29,10 @@ botClient.StartReceiving(
 );
 
 var me = await botClient.GetMe();
-Console.WriteLine($"Bot @{me.Username} has started. Type smth to end.");
-Console.ReadLine();
+Console.WriteLine($"Bot @{me.Username} has started.");
+
+// Hält den Prozess dauerhaft aktiv, bis Systemd den Dienst stoppt (SIGTERM):
+await Task.Delay(-1, cts.Token);
 
 cts.Cancel();
 
@@ -37,17 +40,19 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
     Update update,
     CancellationToken cancellationToken)
 {
-    var updateMessage = update.Message;
-    var receiverId = updateMessage.Chat.Id;
+    if (update.Message == null) return;
+    var user = userService.GetUser(update.Message.Chat);
+    
+    var receiverId = update.Message.Chat.Id;
     var step = userStateService.GetStep(receiverId);
 
-    Console.WriteLine($"User: {updateMessage.Chat.Username}, Step: {step}");
+    Console.WriteLine($"User: {update.Message.Chat.Username}, Step: {step}");
     Console.WriteLine("********");
     
     switch (step)
     {
         case UserStep.None:
-            await chatService.GetChoosePlayModeScreen(receiverId);
+            await chatService.GetChoosePlayModeScreen(user);
             
             /* test as player
             var s = sessionService.CreateSession(receiverId);
@@ -57,10 +62,10 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
             
             break;
         case UserStep.ChoosePlayMode:
-            await chatService.GetHostOrPlayerScreen(updateMessage, receiverId);
+            await chatService.GetHostOrPlayerScreen(update.Message, receiverId);
             break;
-        case UserStep.EnterSessionId when updateMessage.Text is { } sessionId:
-            await chatService.GetWaitingRoleScreen(updateMessage, sessionId);
+        case UserStep.EnterSessionId when update.Message.Text is { } sessionId:
+            await chatService.GetWaitingRoleScreen(update.Message, sessionId);
             break;
         case UserStep.ChooseRoles:
             await chatService.GetHostLobbyScreen(update, receiverId);

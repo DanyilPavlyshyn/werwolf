@@ -17,11 +17,12 @@ public class ChatService(
     LanguageService localService,
     CancellationToken cancellationToken)
 {
-    public async Task GetChoosePlayModeScreen(long receiverId)
+    public async Task GetChoosePlayModeScreen(TelegramUser user)
     {
-        userStateService.SetStep(receiverId, UserStep.ChoosePlayMode);
+        //userStateService.SetStep(user.Id, UserStep.ChoosePlayMode);
+        user.Step = UserStep.ChoosePlayMode;
         await bot.SendMessage(
-            chatId: receiverId,
+            chatId: user.Id,
             text: "Привет! Хочешь играть или вести игру?",
             replyMarkup: ButtonsService.GetChoosePlayModeButtons(),
             cancellationToken: cancellationToken
@@ -154,8 +155,10 @@ public class ChatService(
         StringBuilder rolePlayerList = new StringBuilder();
         
         gameSession.Players
+            .OrderBy(player => player.Role)
+            .ToList()
             .ForEach(player => rolePlayerList.AppendLine(
-                $"{player.Role} - {player.FirstName} {player.LastName}, @{player.Username}"));
+                $"{localService.GetRole(player.Role).Title} - {player.FirstName} {player.LastName}, @{player.Username}"));
         
         await bot.SendMessage(
             chatId: gameSession.HostId,

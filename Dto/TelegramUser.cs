@@ -2,6 +2,24 @@ using Telegram.Bot.Types;
 
 namespace Werwolf_Bot.dto;
 
+public enum UserLanguage
+{
+    English,
+    German,
+    Ukrainian,
+    Russian
+}
+
+public enum UserStep
+{
+    None,
+    ChoosePlayMode,
+    EnterSessionId,
+    ChooseRoles,
+    WaitingPlayersToJoin,
+    GameStarted
+}
+
 public class TelegramUser(
     long id,
     string? username,
@@ -12,4 +30,6 @@ public class TelegramUser(
     public string? Username { get; set; } = username;
     public string? FirstName { get; set; } = firstName;
     public string? LastName { get; set; } = lastName;
+    public UserStep Step { get; set; } = UserStep.None;
+    public UserLanguage Language { get; set; } = UserLanguage.English;
 }
