@@ -1,15 +1,15 @@
 namespace Werwolf_Bot.dto;
 
-public class Player(
-    long id, 
-    string? username, 
-    string? firstName, 
-    string? lastName, 
-    bool isHost, 
-    string? role = "dorfbewohner",
-    string? sessionId = null) : TelegramUser(id, username, firstName, lastName)
+public class Player
 {
-    public bool IsHost { get; set; } = isHost;
-    public string? Role { get; set; } = role;
-    public string? SessionId { get; set; }  = sessionId;
+    public TelegramUser User { get; set; }
+    public bool IsHost { get; set; }
+    public string? Role { get; set; }
+
+    public Player(TelegramUser user, bool isHost, string? role = "dorfbewohner")
+    {
+        User = user;
+        IsHost = isHost;
+        Role = role;
+    }
 }

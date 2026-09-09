@@ -57,7 +57,10 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
             await chatService.GetHostOrPlayerScreen(update.Message, user);
             break;
         case UserStep.EnterSessionId when update.Message.Text is { } sessionId:
-            await chatService.GetWaitingRoleScreen(update.Message, sessionId);
+            await chatService.GetWaitingRoleScreen(user, sessionId);
+            break;
+        case UserStep.AwaitingRole:
+            await chatService.GetLeaveSessionScreen(update.Message, user);
             break;
         case UserStep.ChooseRoles:
             await chatService.GetHostLobbyScreen(update, user);
@@ -65,11 +68,11 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
             /* test: Adding Players to Session */
             var session = sessionService.GetGameSessionByHostId(user.Id);
             session.AddPlayerToSession(
-                new Player(123, "TestUser","Test", "User", false));
+                new Player(new TelegramUser(123, "TestUser","Test", "User"), false));
             session.AddPlayerToSession(
-                new Player(124, "TestUser1","Test1", "User1", false));
+                new Player(new TelegramUser(124, "TestUser1","Test1", "User1"), false));
             session.AddPlayerToSession(
-                new Player(125, "TestUser2","Test2", "User2", false));
+                new Player(new TelegramUser(125, "TestUser2","Test2", "User2"), false));
             //end test */
             
             break;

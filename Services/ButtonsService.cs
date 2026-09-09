@@ -94,4 +94,19 @@ public static class ButtonsService
             OneTimeKeyboard = true 
         };
     }
+    
+    public static ReplyKeyboardMarkup GetLeaveSessionButtons()
+    {
+        return new ReplyKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                new KeyboardButton("Покинуть игру ❌")
+            }
+        })
+        {
+            ResizeKeyboard = true, 
+            OneTimeKeyboard = true 
+        };
+    }
 }

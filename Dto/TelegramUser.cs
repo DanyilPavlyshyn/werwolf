@@ -16,6 +16,7 @@ public enum UserStep
     ChooseLanguage,
     ChoosePlayMode,
     EnterSessionId,
+    AwaitingRole,
     ChooseRoles,
     WaitingPlayersToJoin,
     GameStarted
@@ -31,6 +32,7 @@ public class TelegramUser(
     public string? Username { get; set; } = username;
     public string? FirstName { get; set; } = firstName;
     public string? LastName { get; set; } = lastName;
+    public string? SessionId { get; set; }  = null;
     public UserStep Step { get; set; } = UserStep.None;
     public UserLanguage Language { get; set; } = UserLanguage.English;
     

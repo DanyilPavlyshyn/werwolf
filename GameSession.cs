@@ -17,6 +17,17 @@ public class GameSession(long hostId)
         public List<string> roles { get; set; }
     }
 
+    public void RemovePlayerFromSession(Player player)
+    {
+        lock (Players)
+        {
+            if (Players.Contains(player))
+            {
+                Players.Remove(player);
+            }
+        }
+    }
+
     public void AddPlayerToSession(Player player)
     {
         if (Players.Contains(player)) throw new Exception("Player is already in this session.");
@@ -25,7 +36,7 @@ public class GameSession(long hostId)
 
         lock (Players)
         {
-            player.SessionId = Id;
+            player.User.SessionId = Id;
             Players.Add(player);
             OnPlayersChanged?.Invoke(this, Players.ToList());
         }
@@ -73,6 +84,19 @@ public class GameSession(long hostId)
         for (int i = 0; i < randomizedRoles.Length; i++)
         {
             Players[i].Role = randomizedRoles[i];
+        }
+    }
+    
+    public void RemovePlayer(TelegramUser user)
+    {
+        lock (Players)
+        {
+            var player = Players.FirstOrDefault(x => x.User == user);
+            
+            if (player != null)
+            {
+                Players.Remove(player);
+            }
         }
     }
 }

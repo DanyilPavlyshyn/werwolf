@@ -75,22 +75,18 @@ public class ChatService(
         }
     }
 
-    public async Task GetWaitingRoleScreen(Message message, string sessionId)
+    public async Task GetWaitingRoleScreen(TelegramUser user, string sessionId)
     {
         try
         {
-            var player = new Player(
-                message.Chat.Id,
-                message.Chat.Username,
-                message.Chat.FirstName,
-                message.Chat.LastName,
-                false);
+            var player = new Player(user, false);
 
             sessionService.JoinSession(sessionId, player);
             // no Step defined
             await bot.SendMessage(
-                chatId: message.Chat.Id,
+                chatId: user.Id,
                 text: "Подключено! Теперь ожидай начала игры и получения своей роли.",
+                replyMarkup: ButtonsService.GetLeaveSessionButtons(),
                 cancellationToken: cancellationToken
             );
             Console.WriteLine("Session joined!");
@@ -99,8 +95,29 @@ public class ChatService(
         {
             Console.WriteLine(e);
             await bot.SendMessage(
-                chatId: message.Chat.Id,
+                chatId: user.Id,
                 text: e.Message,
+                cancellationToken: cancellationToken
+            );
+        }
+    }
+
+    public async Task GetLeaveSessionScreen(Message message, TelegramUser user)
+    {
+        if (message is { Text: "Покинуть игру ❌" })
+        {
+            var gameSession = sessionService.GetSession(user.SessionId);
+            
+            if (gameSession != null)
+            {
+                gameSession.RemovePlayer(user);
+            }
+            
+            user.SetStep(UserStep.ChooseLanguage);
+            await bot.SendMessage(
+                chatId: user.Id,
+                text: "Отключено, пиши, если захочешь поиграть. :)",
+                replyMarkup: new ReplyKeyboardRemove(),
                 cancellationToken: cancellationToken
             );
         }
@@ -181,7 +198,7 @@ public class ChatService(
             .OrderBy(player => player.Role)
             .ToList()
             .ForEach(player => rolePlayerList.AppendLine(
-                $"{localService.GetRole(player.Role).Title} - {player.FirstName} {player.LastName}, @{player.Username}"));
+                $"{localService.GetRole(player.Role).Title} - {player.User.FirstName} {player.User.LastName}, @{player.User.Username}"));
         
         await bot.SendMessage(
             chatId: gameSession.HostId,
@@ -244,7 +261,7 @@ public class ChatService(
         if (gameSession.Players.Count == gameSession.GetSelectedRoles().Count)
         {
             var playerNames = gameSession.Players
-                .Select((p, i) => $"{i + 1}. {p.FirstName} {p.LastName}, @{p.Username}").ToList();
+                .Select((p, i) => $"{i + 1}. {p.User.FirstName} {p.User.LastName}, @{p.User.Username}").ToList();
             string playersList = $"Cписок игроков:\n\n{string.Join("\n", playerNames)}";
             
             await bot.SendMessage(
@@ -274,7 +291,7 @@ public class ChatService(
         
         foreach (var player in gameSession.Players)
         {
-            if (!player.IsHost && player.SessionId == gameSession.Id)
+            if (!player.IsHost && player.User.SessionId == gameSession.Id)
             {
                 var filePath = $"Assets/Cards/ru/{player.Role}.png";
                 await using FileStream stream = System.IO.File.OpenRead(filePath);
@@ -284,6 +301,7 @@ public class ChatService(
                     caption: $"Твоя роль - <b>{localService.GetRole(player.Role).Title}</b>!\nОзнакомся с деталями на карточке.\nХорошей игры! :)",
                     parseMode: ParseMode.Html
                 );
+                player.User.Step = UserStep.ChooseLanguage;
             }
         }
     }

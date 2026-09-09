@@ -20,7 +20,7 @@ public class SessionService
         {
             var session = ActiveSessions.Single(x => string
                 .Equals(x.Id, sessionId, StringComparison.CurrentCultureIgnoreCase));
-            player.SessionId = sessionId;
+            player.User.SessionId = sessionId;
             session.AddPlayerToSession(player);
                 
             return session;
@@ -30,6 +30,13 @@ public class SessionService
             Console.WriteLine(e);
             throw;
         }
+    }
+
+    public GameSession? GetSession(string? sessionId)
+    {
+        if (string.IsNullOrEmpty(sessionId)) return null;
+        
+        return ActiveSessions.FirstOrDefault(x => x.Id == sessionId, null);
     }
 
     public GameSession? GetGameSessionByHostId(long hostId)

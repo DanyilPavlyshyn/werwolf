@@ -34,7 +34,7 @@ public class UserService
     {
         foreach (var player in players)
         {
-            if (_users.TryGetValue(player.Id, out var user))
+            if (_users.TryGetValue(player.User.Id, out var user))
             {
                 user.SetStep(step);
             }
