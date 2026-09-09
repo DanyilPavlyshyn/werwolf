@@ -1,7 +1,9 @@
-﻿using Telegram.Bot;
+﻿using Microsoft.Extensions.Hosting;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Werwolf_Bot.dto;
 using Werwolf_Bot.services;
+using Serilog;
 
 var telegramApiKey = Environment
     .GetEnvironmentVariable("TELEGRAM_WERWOLF_API_KEY");
@@ -54,7 +56,7 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
             await chatService.GetChoosePlayModeScreen(update.Message, user);
             break;
         case UserStep.ChoosePlayMode:
-            await chatService.GetHostOrPlayerScreen(update.Message, user);
+            await chatService.GetHostPlayerLanguageScreen(update.Message, user);
             break;
         case UserStep.EnterSessionId when update.Message.Text is { } sessionId:
             await chatService.GetWaitingRoleScreen(user, sessionId);

@@ -6,30 +6,24 @@ public class SessionService
 {
     private static readonly List<GameSession> ActiveSessions = new();
     
-    public GameSession CreateSession(long hostId)
+    public GameSession CreateSession(TelegramUser user)
     {
-        GameSession session = new GameSession(hostId);
+        GameSession session = new GameSession(user.Id);
         ActiveSessions.Add(session);
+        user.SessionId = session.Id;
         
         return session;
     }
 
-    public GameSession JoinSession(string sessionId, Player player)
+    public GameSession? JoinSession(string sessionId, Player player)
     {
-        try
-        {
-            var session = ActiveSessions.Single(x => string
-                .Equals(x.Id, sessionId, StringComparison.CurrentCultureIgnoreCase));
-            player.User.SessionId = sessionId;
-            session.AddPlayerToSession(player);
-                
-            return session;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
+        var session = ActiveSessions.FirstOrDefault(x => string
+            .Equals(x.Id, sessionId, StringComparison.CurrentCultureIgnoreCase), null);
+        player.User.SessionId = sessionId;
+
+        session?.AddPlayerToSession(player);
+
+        return session;
     }
 
     public GameSession? GetSession(string? sessionId)

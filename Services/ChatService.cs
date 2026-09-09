@@ -30,19 +30,18 @@ public class ChatService(
     }
     public async Task GetChoosePlayModeScreen(Message message, TelegramUser user)
     {
-        if (message.Text == null) return;
-        
-        user.SetLanguage(message.Text);
+        if (message.Text != null) user.SetLanguage(message.Text);
+
         user.SetStep(UserStep.ChoosePlayMode);
-        await bot.SendMessage(
-            chatId: user.Id,
-            text: "Привет! Хочешь играть или вести игру?",
-            replyMarkup: ButtonsService.GetChoosePlayModeButtons(),
-            cancellationToken: cancellationToken
-        );
+            await bot.SendMessage(
+                chatId: user.Id,
+                text: "Привет! Хочешь играть или вести игру?",
+                replyMarkup: ButtonsService.GetChoosePlayModeButtons(),
+                cancellationToken: cancellationToken
+            );
     }
 
-    public async Task GetHostOrPlayerScreen(Message message, TelegramUser user)
+    public async Task GetHostPlayerLanguageScreen(Message message, TelegramUser user)
     {
         if (message is { Text: "Хочу быть ведущим 📝" })
         {
@@ -77,29 +76,28 @@ public class ChatService(
 
     public async Task GetWaitingRoleScreen(TelegramUser user, string sessionId)
     {
-        try
-        {
             var player = new Player(user, false);
+            var session = sessionService.JoinSession(sessionId, player);
+            if (session != null)
+            {            
+                await bot.SendMessage(
+                    chatId: user.Id,
+                    text: "Подключено! Теперь ожидай начала игры и получения своей роли.",
+                    replyMarkup: ButtonsService.GetLeaveSessionButtons(),
+                    cancellationToken: cancellationToken
+                );
+            }
+            else
+            {
+                user.SetStep(UserStep.ChoosePlayMode);
+                await bot.SendMessage(
+                    chatId: user.Id,
+                    text: "Ошибка Id! Проверь правильность Id и введи еще раз.",
+                    replyMarkup: ButtonsService.GetChoosePlayModeButtons(),
+                    cancellationToken: cancellationToken
+                );
+            }
 
-            sessionService.JoinSession(sessionId, player);
-            // no Step defined
-            await bot.SendMessage(
-                chatId: user.Id,
-                text: "Подключено! Теперь ожидай начала игры и получения своей роли.",
-                replyMarkup: ButtonsService.GetLeaveSessionButtons(),
-                cancellationToken: cancellationToken
-            );
-            Console.WriteLine("Session joined!");
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            await bot.SendMessage(
-                chatId: user.Id,
-                text: e.Message,
-                cancellationToken: cancellationToken
-            );
-        }
     }
 
     public async Task GetLeaveSessionScreen(Message message, TelegramUser user)
@@ -125,7 +123,7 @@ public class ChatService(
 
     public async Task GetHostLobbyScreen(Update update, TelegramUser user)
     {
-        var gameSession = sessionService.CreateSession(user.Id);
+        var gameSession = sessionService.CreateSession(user);
         
         if (update.Message.WebAppData.Data is { } data)
         {
@@ -296,7 +294,7 @@ public class ChatService(
                 var filePath = $"Assets/Cards/ru/{player.Role}.png";
                 await using FileStream stream = System.IO.File.OpenRead(filePath);
                 await bot.SendPhoto(
-                    chatId: gameSession.HostId, // after test change to player.Id,
+                    chatId: gameSession.HostId, //player.User.Id,
                     photo: InputFile.FromStream(stream, $"{player.Role}.png"),
                     caption: $"Твоя роль - <b>{localService.GetRole(player.Role).Title}</b>!\nОзнакомся с деталями на карточке.\nХорошей игры! :)",
                     parseMode: ParseMode.Html

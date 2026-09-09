@@ -36,23 +36,31 @@ public class TelegramUser(
     public UserStep Step { get; set; } = UserStep.None;
     public UserLanguage Language { get; set; } = UserLanguage.English;
     
-    public void SetLanguage(string language)
+    public bool SetLanguage(string language)
     {
+        bool languageSet = false;
+        
         switch (language)
         {
             case "EN 🇬🇧":
                 Language = UserLanguage.English;
+                languageSet = true;
                 break;
             case "DE 🇩🇪":
                 Language = UserLanguage.German;
+                languageSet = true;
                 break;
             case "UA 🇺🇦":
                 Language = UserLanguage.Ukrainian;
+                languageSet = true;
                 break;
             case "EU 🇷🇺":
                 Language = UserLanguage.Russian;
+                languageSet = true;
                 break;
         }
+        
+        return languageSet;
     }
 
     public void SetStep(UserStep step)
