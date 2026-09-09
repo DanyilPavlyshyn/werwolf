@@ -294,7 +294,7 @@ public class ChatService(
                 var filePath = $"Assets/Cards/ru/{player.Role}.png";
                 await using FileStream stream = System.IO.File.OpenRead(filePath);
                 await bot.SendPhoto(
-                    chatId: gameSession.HostId, //player.User.Id,
+                    chatId: player.User.Id,
                     photo: InputFile.FromStream(stream, $"{player.Role}.png"),
                     caption: $"Твоя роль - <b>{localService.GetRole(player.Role).Title}</b>!\nОзнакомся с деталями на карточке.\nХорошей игры! :)",
                     parseMode: ParseMode.Html

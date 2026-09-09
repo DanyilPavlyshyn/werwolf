@@ -66,17 +66,6 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
             break;
         case UserStep.ChooseRoles:
             await chatService.GetHostLobbyScreen(update, user);
-            
-            /* test: Adding Players to Session */
-            var session = sessionService.GetGameSessionByHostId(user.Id);
-            session.AddPlayerToSession(
-                new Player(new TelegramUser(123, "TestUser","Test", "User"), false));
-            session.AddPlayerToSession(
-                new Player(new TelegramUser(124, "TestUser1","Test1", "User1"), false));
-            session.AddPlayerToSession(
-                new Player(new TelegramUser(125, "TestUser2","Test2", "User2"), false));
-            //end test */
-            
             break;
         case UserStep.WaitingPlayersToJoin:
             await chatService.StartOrCancelGame(update, user);
