@@ -32,7 +32,7 @@ botClient.StartReceiving(
 var me = await botClient.GetMe();
 Console.WriteLine($"Bot @{me.Username} has started.");
 
-// test create new Session
+/* test create new Session
 var testUser = new TelegramUser(123, "testUN", "testFN", "testLN");
 var testPlayer = new Player(new TelegramUser(123, "testUN", "testFN", "testLN"), true);
 var testSession = sessionService.CreateSession(testUser);
@@ -42,7 +42,10 @@ Console.WriteLine($"Session ID: {testSession.Id}");
 var sessionPlayers =
     string.Join("\n", testSession.Players.Select(p => $"username: {p.User.Username}, id: {p.User.Id}"));
 Console.WriteLine($"Session players: {sessionPlayers}");
-//end test
+
+await Task.Delay(50000);
+await chatService.SendRoleCardsToPlayersAsync(testSession);
+//end test */
 
 // Holds Process active
 await Task.Delay(-1, cts.Token);
@@ -78,6 +81,14 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
             break;
         case UserStep.ChooseRoles:
             await chatService.GetHostLobbyScreen(update, user);
+            
+            /* test: add user to session
+            var testUser = new TelegramUser(123, "testUN", "testFN", "testLN");
+            var testPlayer = new Player(testUser, false);
+            var session = sessionService.GetGameSessionByHostId(user.Id);
+            session!.AddPlayerToSession(testPlayer);
+            //end test */
+            
             break;
         case UserStep.WaitingPlayersToJoin:
             await chatService.StartOrCancelGame(update, user);

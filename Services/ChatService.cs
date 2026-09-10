@@ -153,7 +153,7 @@ public class ChatService(
 
     public async Task StartOrCancelGame(Update update, TelegramUser user)
     {
-        var gameSession = sessionService.GetGameSessionByHostId(user.Id);
+        var gameSession = sessionService.GetSession(user.SessionId);
         if (gameSession == null)
         {
             await bot.SendMessage(
@@ -166,21 +166,22 @@ public class ChatService(
             return;
         }
 
-        if (update.Message is { Text: "Раздать карты 🃏" })
+        switch (update.Message)
         {
-            user.SetStep(UserStep.GameStarted);
-            await SendRoleCardsToPlayersAsync(gameSession);
-            await SendPlayersAndRolesToHostAsync(gameSession);
-            await SendRulesToHostAsync(gameSession);
-        }
-        else if (update.Message is { Text: "Отменить игру ❌" })
-        {
-            await bot.SendMessage(
-                chatId: user.Id,
-                text: "Игровая сессия отменена. \n\n Захочешь еще поиграть - пиши. :)",
-                replyMarkup: new ReplyKeyboardRemove(),
-                cancellationToken: cancellationToken
-            );
+            case { Text: "Раздать карты 🃏" }:
+                user.SetStep(UserStep.GameStarted);
+                await SendRoleCardsToPlayersAsync(gameSession);
+                await SendPlayersAndRolesToHostAsync(gameSession);
+                await SendRulesToHostAsync(gameSession);
+                break;
+            case { Text: "Отменить игру ❌" }:
+                await bot.SendMessage(
+                    chatId: user.Id,
+                    text: "Игровая сессия отменена. \n\n Захочешь еще поиграть - пиши. :)",
+                    replyMarkup: new ReplyKeyboardRemove(),
+                    cancellationToken: cancellationToken
+                );
+                break;
         }
         
         // setting state to default and deleting Session to free space
@@ -279,6 +280,7 @@ public class ChatService(
                 chatId: gameSession.HostId,
                 text: $"Всего игроков: {playerCount}. Для начала игры необходимо еще: {playersNeeded}",
                 parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
+                replyMarkup: ButtonsService.GetSessionCancelButtons(),
                 cancellationToken: cancellationToken
             );
         }
