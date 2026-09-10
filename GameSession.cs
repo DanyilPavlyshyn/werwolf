@@ -17,17 +17,6 @@ public class GameSession(long hostId)
         public List<string> roles { get; set; }
     }
 
-    public void RemovePlayerFromSession(Player player)
-    {
-        lock (Players)
-        {
-            if (Players.Contains(player))
-            {
-                Players.Remove(player);
-            }
-        }
-    }
-
     public void AddPlayerToSession(Player player)
     {
         if (Players.Contains(player)) throw new Exception("Player is already in this session.");

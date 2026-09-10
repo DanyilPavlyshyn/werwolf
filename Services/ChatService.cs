@@ -80,6 +80,7 @@ public class ChatService(
             var session = sessionService.JoinSession(sessionId, player);
             if (session != null)
             {            
+                user.SetStep(UserStep.AwaitingRole);
                 await bot.SendMessage(
                     chatId: user.Id,
                     text: "Подключено! Теперь ожидай начала игры и получения своей роли.",

@@ -19,10 +19,14 @@ public class SessionService
     {
         var session = ActiveSessions.FirstOrDefault(x => string
             .Equals(x.Id, sessionId, StringComparison.CurrentCultureIgnoreCase), null);
-        player.User.SessionId = sessionId;
-
+        
+        if (session == null)
+        {
+            return null;
+        }
+        
         session?.AddPlayerToSession(player);
-
+        player.User.SessionId = sessionId;
         return session;
     }
 

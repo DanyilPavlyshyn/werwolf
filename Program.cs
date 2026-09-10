@@ -32,6 +32,18 @@ botClient.StartReceiving(
 var me = await botClient.GetMe();
 Console.WriteLine($"Bot @{me.Username} has started.");
 
+// test create new Session
+var testUser = new TelegramUser(123, "testUN", "testFN", "testLN");
+var testPlayer = new Player(new TelegramUser(123, "testUN", "testFN", "testLN"), true);
+var testSession = sessionService.CreateSession(testUser);
+testSession.SaveRoleSelection(new List<string>{ "werwolf" });
+Console.WriteLine("Session created.");
+Console.WriteLine($"Session ID: {testSession.Id}");
+var sessionPlayers =
+    string.Join("\n", testSession.Players.Select(p => $"username: {p.User.Username}, id: {p.User.Id}"));
+Console.WriteLine($"Session players: {sessionPlayers}");
+//end test
+
 // Holds Process active
 await Task.Delay(-1, cts.Token);
 
