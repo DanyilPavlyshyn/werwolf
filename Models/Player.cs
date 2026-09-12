@@ -1,4 +1,4 @@
-namespace Werwolf_Bot.dto;
+namespace Werwolf_Bot.Models;
 
 public class Player
 {

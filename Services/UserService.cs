@@ -1,9 +1,8 @@
 using System.Collections.Concurrent;
-using Telegram.Bot;
 using Telegram.Bot.Types;
-using Werwolf_Bot.dto;
+using Werwolf_Bot.Models;
 
-namespace Werwolf_Bot.services;
+namespace Werwolf_Bot.Services;
 
 public class UserService
 {
@@ -30,7 +29,7 @@ public class UserService
         }
     }
     
-    public void SetStepForUsers(List<Player> players, UserStep step)
+    public void SetStepForUsers(IReadOnlyList<Player> players, UserStep step)
     {
         foreach (var player in players)
         {

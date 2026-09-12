@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Werwolf_Bot.dto;
+using Werwolf_Bot.Models;
 
-namespace Werwolf_Bot.services;
+namespace Werwolf_Bot.Services;
 
 public class GameData
 {
@@ -77,11 +77,20 @@ public class LocalizationService
     private readonly Dictionary<string, Dictionary<string, RoleInfo>> _roles = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, UserLanguage> _lanCodes = new()
     {
-        ["EN"] = UserLanguage.English,
-        ["DE"] = UserLanguage.German,
-        ["UA"] = UserLanguage.Ukrainian,
-        ["RU"] = UserLanguage.Russian
+        ["EN 🇬🇧"] = UserLanguage.English,
+        ["DE 🇩🇪"] = UserLanguage.German,
+        ["UA 🇺🇦"] = UserLanguage.Ukrainian,
+        ["RU 🇷🇺"] = UserLanguage.Russian
     };
+
+    public UserLanguage? GetUserLanguage(string langCode)
+    {
+        if (_lanCodes.TryGetValue(langCode, out var language))
+        {
+            return language;
+        }
+        return null; 
+    }
     
     public void LoadLanguage(string langCode)
     {

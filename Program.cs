@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
-using Werwolf_Bot.dto;
-using Werwolf_Bot.services;
-using Serilog;
+using Werwolf_Bot.Models;
+using Werwolf_Bot.Models.services;
+using Werwolf_Bot.Services;
 
 var telegramApiKey = Environment
     .GetEnvironmentVariable("TELEGRAM_WERWOLF_API_KEY");
@@ -12,16 +13,21 @@ if (string.IsNullOrWhiteSpace(telegramApiKey))
 {
     throw new InvalidOperationException("TELEGRAM_WERWOLF_API_KEY is not set.");
 }
+// ToDo: inversion Type Principle - Telegram Entities into Dto
 
 var userService = new UserService();
 var botClient = new TelegramBotClient(telegramApiKey);
 using var cts = new CancellationTokenSource();
 SessionService sessionService = new SessionService();
+
+// ToDo: lokalization for en, de, ua
 var languageService = new LanguageService("ru");
-var loc = new LocalizationService();
-loc.LoadLanguage("ru");
+var localizationService = new LocalizationService();
+
+localizationService.LoadLanguage("ru");
 ChatService chatService = new ChatService(
-    sessionService, botClient, languageService, userService, cts.Token);
+    sessionService, botClient, languageService,
+    localizationService, userService, cts.Token);
 
 botClient.StartReceiving(
     updateHandler: HandleUpdateAsync,
@@ -58,46 +64,71 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
 {
     if (update.Message == null) return;
     var user = userService.GetUser(update.Message.Chat);
+    var botUpdate = new BotUpdate(
+        update.Message.Text,
+        update.Message.WebAppData?.Data
+    );
 
     Console.WriteLine($"User: {user.Username}, Step: {user.Step}");
     Console.WriteLine("********");
     
-    switch (user.Step)
+    try
     {
-        case UserStep.None:
-            await chatService.GetChooseLanguageScreen(user);
-            break;
-        case UserStep.ChooseLanguage:
-            await chatService.GetChoosePlayModeScreen(update.Message, user);
-            break;
-        case UserStep.ChoosePlayMode:
-            await chatService.GetHostPlayerLanguageScreen(update.Message, user);
-            break;
-        case UserStep.EnterSessionId when update.Message.Text is { } sessionId:
-            await chatService.GetWaitingRoleScreen(user, sessionId);
-            break;
-        case UserStep.AwaitingRole:
-            await chatService.GetLeaveSessionScreen(update.Message, user);
-            break;
-        case UserStep.ChooseRoles:
-            await chatService.GetHostLobbyScreen(update, user);
-            
-            /* test: add user to session
-            var testUser = new TelegramUser(123, "testUN", "testFN", "testLN");
-            var testPlayer = new Player(testUser, false);
-            var session = sessionService.GetGameSessionByHostId(user.Id);
-            session!.AddPlayerToSession(testPlayer);
-            //end test */
-            
-            break;
-        case UserStep.WaitingPlayersToJoin:
-            await chatService.StartOrCancelGame(update, user);
-            break;
+        // ToDo: stepDispatcher
+        // ToDo: stepHandler
+        switch (user.Step)
+        {
+            case UserStep.None:
+                await chatService.GetChooseLanguageScreen(user);
+                break;
+            case UserStep.ChooseLanguage:
+                await chatService.GetChoosePlayModeScreen(botUpdate, user);
+                break;
+            case UserStep.ChoosePlayMode:
+                await chatService.GetHostPlayerLanguageScreen(botUpdate, user);
+                break;
+            case UserStep.EnterSessionId:
+                await chatService.GetWaitingRoleScreen(user, botUpdate);
+                break;
+            case UserStep.AwaitingRole:
+                await chatService.GetLeaveSessionScreen(botUpdate, user);
+                break;
+            case UserStep.ChooseRoles:
+                await chatService.GetHostLobbyScreen(botUpdate, user);
+                
+                /* test: add and remove user to session
+                var testUser = new TelegramUser(123, "testUN", "testFN", "testLN");
+                var testPlayer = new Player(testUser, false);
+                var session = sessionService.GetGameSessionByHostId(user.Id);
+                
+                await Task.Delay(2000);
+                session!.AddPlayer(testPlayer);
+                
+                await Task.Delay(2000);
+                session!.RemovePlayer(testPlayer);
+                //end test */
+                
+                break;
+            case UserStep.WaitingPlayersToJoin:
+                await chatService.StartOrCancelGame(botUpdate, user);
+                break;
+        }
     }
+    catch (BusinessException exception)
+    {
+        await chatService.SendMessage(user, 
+            exception.Message);
+    }
+
+    // ToDo: logging StepHandler
 }
 
-Task HandleErrorAsync(ITelegramBotClient bot, Exception exception, CancellationToken cancellationToken)
+Task HandleErrorAsync(
+    ITelegramBotClient bot,
+    Exception exception,
+    CancellationToken cancellationToken)
 {
+    // ToDo: logging Errors
     Console.WriteLine($"Error: {exception.Message}");
     return Task.CompletedTask;
 }

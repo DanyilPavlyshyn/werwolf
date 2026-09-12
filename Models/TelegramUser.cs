@@ -1,6 +1,6 @@
 using Telegram.Bot.Types;
 
-namespace Werwolf_Bot.dto;
+namespace Werwolf_Bot.Models;
 
 public enum UserLanguage
 {
@@ -36,31 +36,9 @@ public class TelegramUser(
     public UserStep Step { get; set; } = UserStep.None;
     public UserLanguage Language { get; set; } = UserLanguage.English;
     
-    public bool SetLanguage(string language)
+    public void SetLanguage(UserLanguage language)
     {
-        bool languageSet = false;
-        
-        switch (language)
-        {
-            case "EN 🇬🇧":
-                Language = UserLanguage.English;
-                languageSet = true;
-                break;
-            case "DE 🇩🇪":
-                Language = UserLanguage.German;
-                languageSet = true;
-                break;
-            case "UA 🇺🇦":
-                Language = UserLanguage.Ukrainian;
-                languageSet = true;
-                break;
-            case "EU 🇷🇺":
-                Language = UserLanguage.Russian;
-                languageSet = true;
-                break;
-        }
-        
-        return languageSet;
+        Language = language; 
     }
 
     public void SetStep(UserStep step)

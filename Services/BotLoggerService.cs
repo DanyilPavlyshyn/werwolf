@@ -5,7 +5,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace Werwolf_Bot.services;
+namespace Werwolf_Bot.Models.services;
 
 public class BotUpdateHandler
 {
