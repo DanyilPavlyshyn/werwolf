@@ -113,7 +113,7 @@ public class ChatService(
             var gameSession = sessionService.GetSession(user.SessionId);
             gameSession?.RemovePlayer(user);
             
-            user.SetStep(UserStep.ChooseLanguage);
+            user.SetStep(UserStep.None);
             await SendMessage(
                 user,
                 "Отключено, пиши, если захочешь поиграть. :)"
@@ -141,7 +141,7 @@ public class ChatService(
                 
                 await SendMessage(
                     user,
-                    $"Отлично, роли выбраны, теперь сообщи Id игрокам и ожидай их подключения. ID:<blockquote>{gameSession.Id.ToUpper()}</blockquote>",
+                    $"Роли выбраны, теперь сообщи Id игрокам и ожидай их подключения. ID:<blockquote>{gameSession.Id.ToUpper()}</blockquote>",
                     ButtonsService.GetSessionCancelButtons()
                 );
             }
@@ -290,9 +290,10 @@ public class ChatService(
                     chatId: player.User.Id,
                     photo: InputFile.FromStream(stream, $"{player.Role}.png"),
                     caption: $"Твоя роль - <b>{localService.GetRole(player.Role).Title}</b>!\nОзнакомся с деталями на карточке.\nХорошей игры! :)",
-                    parseMode: ParseMode.Html
+                    parseMode: ParseMode.Html,
+                    replyMarkup: new ReplyKeyboardRemove()
                 );
-                player.User.Step = UserStep.ChooseLanguage;
+                player.User.SetStep(UserStep.None);
             }
         }
     }

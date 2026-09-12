@@ -6,7 +6,7 @@ namespace Werwolf_Bot.Services;
 
 public class UserService
 {
-    private ConcurrentDictionary<long, TelegramUser> _users = new();
+    private readonly ConcurrentDictionary<long, TelegramUser> _users = new();
     
     public TelegramUser GetUser(Chat chat)
     {
