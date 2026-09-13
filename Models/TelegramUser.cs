@@ -14,6 +14,7 @@ public enum UserStep
 {
     None,
     ChooseLanguage,
+    LanguageChosed,
     ChoosePlayMode,
     EnterSessionId,
     AwaitingRole,

@@ -42,7 +42,7 @@ public class ChatService(
             "Hi! Please choose your language:", 
             ButtonsService.GetChooseLanguageButtons());
     }
-    public async Task GetChoosePlayModeScreen(BotUpdate message, TelegramUser user)
+    public void SetLanguage(BotUpdate message, TelegramUser user)
     {
         if (message.Text is null) return;
         
@@ -52,6 +52,9 @@ public class ChatService(
         
         user.SetLanguage(language.Value);
         user.SetStep(UserStep.ChoosePlayMode);
+    }
+    public async Task GetChoosePlayModeScreen(BotUpdate message, TelegramUser user)
+    {
         await SendMessage(
             user,
             "Привет! Хочешь играть или вести игру?",
@@ -68,7 +71,7 @@ public class ChatService(
             await SendMessage(
                 user,
                 "Отлично, теперь нужно выбрать роли. Количество ролей должно соответствовать количеству игроков.",
-                ButtonsService.GetChooseRolesButtons()
+                ButtonsService.GetChooseRolesButtons(user.Language)
             );
         }
         else if (message is { Text: "Хочу играть 🐺" })

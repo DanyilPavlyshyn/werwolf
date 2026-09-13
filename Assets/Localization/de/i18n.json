@@ -1,0 +1,83 @@
+{
+  "roles": {
+    "werwolf": {
+      "title": "Werwolf",
+      "description": "Wacht jede Nacht gemeinsam mit seinem Rudel auf, um ein neues Opfer auszuwählen und zu zerfleischen. Tagsüber versteckt er sich unter den gewöhnlichen Dorfbewohnern.",
+      "nightPrio": 2,
+      "onlyFirstNight": false
+    },
+    "amo": {
+      "title": "Amor",
+      "description": "Verbindet in der ersten Nacht die Schicksale zweier Spieler. Stirbt einer der Verliebten, stirbt der andere vor Kummer.",
+      "nightPrio": 1,
+      "onlyFirstNight": true
+    },
+    "hexe": {
+      "title": "Hexe",
+      "description": "Besitzt zwei Tränke: einen Heiltrank und einen Gifttrank. Kann einmal pro Spiel das Opfer der Werwölfe retten und einen beliebigen Spieler vergiften.",
+      "nightPrio": 4,
+      "onlyFirstNight": false
+    },
+    "jaeger": {
+      "title": "Jäger",
+      "description": "Ein erfahrener Schütze. Im Moment seines Todes gibt er einen letzten Schuss ab und nimmt einen beliebigen ausgewählten Spieler mit in den Tod.",
+      "nightPrio": 0
+    },
+    "vanhelsing": {
+      "title": "Van Helsing",
+      "description": "Kann jede Nacht einem Spieler eine Falle stellen. Wird der Spieler mit der Falle in der folgenden Nacht angegriffen, stirbt ein zufälliger Werwolf.",
+      "nightPrio": 7,
+      "onlyFirstNight": false
+    },
+    "priester": {
+      "title": "Priester",
+      "description": "Kann einmal pro Spiel einen Spieler mit Weihwasser übergießen. Ist dieser Spieler ein Werwolf, stirbt er; andernfalls stirbt der Priester.",
+      "nightPrio": 0
+    },
+    "baerenfuehrer": {
+      "title": "Bärenführer",
+      "description": "Sitzt ein Werwolf neben ihm, beginnt sein Bär zu Beginn des neuen Tages zu knurren und warnt damit vor der Gefahr.",
+      "nightPrio": 0
+    },
+    "psychopath": {
+      "title": "Psychopath",
+      "description": "Besitzt einen instabilen Verstand. Sein Ziel ist es, bereits am ersten Tag bei der Abstimmung aus dem Spiel gewählt zu werden. Gelingt ihm das, gewinnt er und das Dorf verliert. Ab der zweiten Nacht spielt er wie ein gewöhnlicher Dorfbewohner.",
+      "nightPrio": 0
+    },
+    "wildekind": {
+      "title": "Wildes Kind",
+      "description": "Wählt zu Beginn des Spiels ein Vorbild. Solange dieses Vorbild lebt, kämpft das Wilde Kind auf der Seite der Dorfbewohner. Stirbt das Vorbild, verwandelt sich das Wilde Kind in einen vollwertigen Werwolf.",
+      "nightPrio": 1,
+      "onlyFirstNight": true
+    },
+    "detektiv": {
+      "title": "Detektiv",
+      "description": "Ermittelt jede Nacht und kann überprüfen, ob zwei von ihm ausgewählte Spieler zum selben Team gehören.",
+      "nightPrio": 5,
+      "onlyFirstNight": false
+    },
+    "hure": {
+      "title": "Dirne",
+      "description": "Verbringt jede Nacht bei einem anderen Spieler. Besucht sie einen Dorfbewohner, finden die Werwölfe sie nicht zu Hause. Besucht sie jedoch einen Werwolf oder wird der Spieler getötet, bei dem sie übernachtet, stirbt sie ebenfalls.",
+      "nightPrio": 3,
+      "onlyFirstNight": false
+    },
+    "seherin": {
+      "title": "Seherin",
+      "description": "Kann jede Nacht die wahre Identität eines Spielers erkennen.",
+      "nightPrio": 6,
+      "onlyFirstNight": false
+    },
+    "zwilling": {
+      "title": "Zwilling",
+      "description": "Zwei miteinander verbundene Seelen. Sie kennen die Rollen des jeweils anderen bereits seit Beginn des Spiels.",
+      "nightPrio": 1,
+      "onlyFirstNight": true
+    },
+    "dorfbewohner": {
+      "title": "Dorfbewohner",
+      "description": "Ein gewöhnlicher Bewohner des Dorfes. Besitzt keine magischen Fähigkeiten, doch seine wichtigsten Waffen sind seine Stimme und seine Kombinationsgabe bei der Abstimmung am Tag.",
+      "nightPrio": 0
+    }
+  }
+}

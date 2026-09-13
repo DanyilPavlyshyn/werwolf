@@ -1,0 +1,94 @@
+{
+  "roles": [
+    {
+      "id": "werwolf1",
+      "dataId": "werwolf",
+      "icon": "🐺"
+    },
+    {
+      "id": "werwolf2",
+      "dataId": "werwolf",
+      "icon": "🐺"
+    },
+    {
+      "id": "werwolf3",
+      "dataId": "werwolf",
+      "icon": "🐺"
+    },
+    {
+      "id": "amo",
+      "dataId": "amo",
+      "icon": "💘"
+    },
+    {
+      "id": "hexe",
+      "dataId": "hexe",
+      "icon": "🧪"
+    },
+    {
+      "id": "jaeger",
+      "dataId": "jaeger",
+      "icon": "🏹"
+    },
+    {
+      "id": "vanhelsing",
+      "dataId": "vanhelsing",
+      "icon": "⚔️"
+    },
+    {
+      "id": "priester",
+      "dataId": "priester",
+      "icon": "✝️"
+    },
+    {
+      "id": "baerenfuehrer",
+      "dataId": "baerenfuehrer",
+      "icon": "🐻"
+    },
+    {
+      "id": "psyhopath",
+      "dataId": "psyhopath",
+      "icon": "🪓"
+    },
+    {
+      "id": "wildekind",
+      "dataId": "wildekind",
+      "icon": "🐾"
+     },
+    {
+      "id": "detektiv",
+      "dataId": "detektiv",
+      "icon": "🔍"
+    },
+    {
+      "id": "hure",
+      "dataId": "hure",
+      "icon": "💋"
+    },
+    {
+      "id": "seherin",
+      "dataId": "seherin",
+      "icon": "🔮"
+    },
+    {
+      "id": "zwilling1",
+      "dataId": "zwilling",
+      "icon": "👥"
+    },
+    {
+      "id": "zwilling2",
+      "dataId": "zwilling",
+      "icon": "👥"
+    },
+    {
+      "id": "dorfbewohner1",
+      "dataId": "dorfbewohner",
+      "icon": "👨‍🌾"
+    },
+    {
+      "id": "dorfbewohner2",
+      "dataId": "dorfbewohner",
+      "icon": "👩‍🌾"
+    }
+  ]
+}

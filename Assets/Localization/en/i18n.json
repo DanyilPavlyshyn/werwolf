@@ -1,0 +1,83 @@
+{
+  "roles": {
+    "werwolf": {
+      "title": "Werewolf",
+      "description": "Every night, wakes up together with the pack to choose and tear apart a new victim. During the day, hides among the ordinary villagers.",
+      "nightPrio": 2,
+      "onlyFirstNight": false
+    },
+    "amo": {
+      "title": "Cupid",
+      "description": "On the first night, binds the fates of two players. If one of the lovers dies, the other dies of grief.",
+      "nightPrio": 1,
+      "onlyFirstNight": true
+    },
+    "hexe": {
+      "title": "Witch",
+      "description": "Has two potions: one for healing and one for poisoning. Can save the werewolves' victim and poison any player once per game.",
+      "nightPrio": 4,
+      "onlyFirstNight": false
+    },
+    "jaeger": {
+      "title": "Hunter",
+      "description": "An experienced marksman. At the moment of death, fires one final shot and takes any chosen player down as well.",
+      "nightPrio": 0
+    },
+    "vanhelsing": {
+      "title": "Van Helsing",
+      "description": "Every night, can set a trap on a player. If the trapped player is attacked on the following night, a random werewolf dies.",
+      "nightPrio": 7,
+      "onlyFirstNight": false
+    },
+    "priester": {
+      "title": "Priest",
+      "description": "Once per game, can pour holy water on a player. If that player is a werewolf, they die; otherwise, the priest dies.",
+      "nightPrio": 0
+    },
+    "baerenfuehrer": {
+      "title": "Bear Tamer",
+      "description": "If a werewolf is sitting next to the Bear Tamer, the bear starts growling at the beginning of the new day, warning everyone of the danger.",
+      "nightPrio": 0
+    },
+    "psychopath": {
+      "title": "Psychopath",
+      "description": "Has an unstable mind. The goal is to be eliminated by vote on the very first day. If successful, the Psychopath wins and the village loses. From the second night onward, plays as a Villager.",
+      "nightPrio": 0
+    },
+    "wildekind": {
+      "title": "Wild Child",
+      "description": "At the beginning of the game, chooses an idol. As long as the idol is alive, fights on the villagers' side. If the idol dies, the Wild Child turns into a full-fledged werewolf.",
+      "nightPrio": 1,
+      "onlyFirstNight": true
+    },
+    "detektiv": {
+      "title": "Detective",
+      "description": "Every night, conducts an investigation and can check whether two chosen players are on the same team.",
+      "nightPrio": 5,
+      "onlyFirstNight": false
+    },
+    "hure": {
+      "title": "Harlot",
+      "description": "Every night, stays with one of the other players. If visiting a villager, the werewolves will not find the Harlot at home. However, if the Harlot visits a werewolf, or if the player being visited is killed, the Harlot dies as well.",
+      "nightPrio": 3,
+      "onlyFirstNight": false
+    },
+    "seherin": {
+      "title": "Seer",
+      "description": "Every night, can discover the true identity of one player.",
+      "nightPrio": 6,
+      "onlyFirstNight": false
+    },
+    "zwilling": {
+      "title": "Twin",
+      "description": "Two souls bound together. They know each other's roles from the very beginning of the game.",
+      "nightPrio": 1,
+      "onlyFirstNight": true
+    },
+    "dorfbewohner": {
+      "title": "Villager",
+      "description": "An ordinary village resident. Has no magical abilities, but the main weapons are voting and deduction during the daytime vote.",
+      "nightPrio": 0
+    }
+  }
+}

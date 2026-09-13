@@ -1,10 +1,19 @@
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using Werwolf_Bot.Models;
 
-namespace Werwolf_Bot.Models.services;
+namespace Werwolf_Bot.Services;
 
 public static class ButtonsService 
 {
+    private static Dictionary<UserLanguage, string> _langs = new()
+    {
+        [UserLanguage.English] = "en",
+        [UserLanguage.German] = "de",
+        [UserLanguage.Ukrainian] = "uk",
+        [UserLanguage.Russian] = "ru"
+    };
+    
     public static ReplyKeyboardMarkup GetChooseLanguageButtons()
     {
         return new ReplyKeyboardMarkup(new[]
@@ -49,11 +58,13 @@ public static class ButtonsService
         };
     }
     
-    public static ReplyKeyboardMarkup GetChooseRolesButtons()
+    public static ReplyKeyboardMarkup GetChooseRolesButtons(UserLanguage? language)
     {
+        var langCode = _langs[language ?? UserLanguage.English];
+        
         return new ReplyKeyboardMarkup(KeyboardButton.WithWebApp(
             text: "🐺 Выбор ролей",
-            webApp: new WebAppInfo { Url = "https://danyilpavlyshyn.github.io/werwolf/Assets/Pages/roles.html" }
+            webApp: new WebAppInfo { Url = $"https://danyilpavlyshyn.github.io/werwolf/Assets/Pages/roles.html?language={langCode}" }
         ))
         {
             ResizeKeyboard = true,
