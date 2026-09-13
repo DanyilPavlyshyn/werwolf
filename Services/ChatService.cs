@@ -19,6 +19,65 @@ public class ChatService(
     UserService userService,
     CancellationToken cancellationToken)
 {
+    public async Task GetStepResponse(TelegramUser user)
+    {
+        switch (user.Step)
+        {
+            case UserStep.ChoosingLanguage:
+                await SendMessage(
+                    user, 
+                    "Hi! Please choose your language:", 
+                    ButtonsService.GetChooseLanguageButtons());
+                break;
+            case UserStep.ChoosingPlayMode:
+                await SendMessage(
+                    user,
+                    "Привет! Хочешь играть или вести игру?",
+                    ButtonsService.GetChoosePlayModeButtons()
+                );
+                break;
+            case UserStep.ChoosingRoles:
+                await SendMessage(
+                    user,
+                    "Отлично, теперь нужно выбрать роли. Количество ролей должно соответствовать количеству игроков.",
+                    ButtonsService.GetChooseRolesButtons(user.Language)
+                );
+                break;
+            case UserStep.WaitingPlayersToJoin:
+                break;
+            case UserStep.ReadyToStart:
+                break;
+            case UserStep.EnteringSessionId:
+                await bot.SendMessage(
+                    chatId: user.Id,
+                    text: "Хорошо, если введущий уже создал игру и сообщил тебе id, отправь мне его в чате:",
+                    cancellationToken: cancellationToken
+                );
+                break;
+            case UserStep.WaitingStart:
+                await SendMessage(
+                    user,
+                    "Подключено! Теперь ожидай начала игры и получения своей роли.",
+                    ButtonsService.GetLeaveSessionButtons());
+                break;
+            case UserStep.CanceledAsRole:
+                await SendMessage(
+                    user,
+                    "Отключено, пиши, если захочешь поиграть. :)"
+                );
+                break;
+            case UserStep.CanceledAsHost:
+                await SendMessage(
+                    user,
+                    "Игровая сессия отменена. \n\n Захочешь еще поиграть - пиши. :)"
+                );
+                break;
+            default:
+                user.SetStep(UserStep.None);
+                break;
+        }
+    }
+    
     public async Task SendMessage(
         TelegramUser user,
         string message, 

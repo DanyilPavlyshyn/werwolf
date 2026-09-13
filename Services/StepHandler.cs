@@ -3,35 +3,60 @@ using Werwolf_Bot.Models;
 
 namespace Werwolf_Bot.Services;
 
-public class StepHandler(
-    SessionService sessions,
-    LocalizationService localization,
-    ChatService chat,
-    UserService users)
+public class StepHandler
 {
-    private readonly Dictionary<UserStep, Func<TelegramUser, BotUpdate>> _handlers = new()
-    {
-        [UserStep.ChoosingLanguage] = HandleChoosingLanguage,
-        [UserStep.ChoosingRoles] = HandleChoosingRoles,
-        [UserStep.EnteringSessionId] = HandleEnteringSessionId,
-        [UserStep.StartedAsHost] = HandleStartedAsHost,
-        [UserStep.CanceledAsHost] = HandleCanceledAsHost,
-        [UserStep.CanceledAsRole] = HandleCanceledAsRole
-    };
+    private readonly SessionService sessions;
+    private readonly LocalizationService localization;
+    private readonly ChatService chat;
+    private readonly UserService users;
+    private readonly Dictionary<UserStep, Func<TelegramUser, BotUpdate, Task>> _handlers;
 
-    /// <summary>
-    /// Processes input for the current step, before the dispatcher changes it.
-    /// False means ignored or invalid input; do not advance the step in that case.
-    /// Navigation-only and completed steps have no data operation.
-    /// This class neither changes steps nor sends messages.
-    /// </summary>
-    public bool Handle(TelegramUser user, BotUpdate update)
+    public StepHandler(
+        SessionService sessions,
+        LocalizationService localization,
+        ChatService chat,
+        UserService users)
     {
-        return _handlers.TryGetValue(user.Step, out var handler)
-               && handler(user, update);
+        this.sessions = sessions;
+        this.localization = localization;
+        this.chat = chat;
+        this.users = users;
+
+        _handlers = new()
+        {
+            [UserStep.ChoosingLanguage] = AsAsync(HandleChoosingLanguage),
+            [UserStep.ChoosingRoles] = AsAsync(HandleChoosingRoles),
+            [UserStep.EnteringSessionId] = AsAsync(HandleEnteringSessionId),
+            [UserStep.StartedAsHost] = HandleStartedAsHost,
+            [UserStep.CanceledAsHost] = AsAsync(HandleCanceledAsHost),
+            [UserStep.CanceledAsRole] = AsAsync(HandleCanceledAsRole)
+        };
     }
 
-    public void HandleChoosingLanguage(TelegramUser user, BotUpdate message)
+    /// <summary>
+    /// Executes and awaits the handler registered for the user's current step.
+    /// Returns false if no handler is registered; true means the handler completed,
+    /// not necessarily that the input was valid. Exceptions propagate to the caller.
+    /// </summary>
+    public async Task<bool> HandleAsync(TelegramUser user, BotUpdate update)
+    {
+        if (!_handlers.TryGetValue(user.Step, out var handler)) return false;
+
+        await handler(user, update);
+        return true;
+    }
+
+    private static Func<TelegramUser, BotUpdate, Task> AsAsync(
+        Action<TelegramUser, BotUpdate> handler)
+    {
+        return (user, update) =>
+        {
+            handler(user, update);
+            return Task.CompletedTask;
+        };
+    }
+
+    private void HandleChoosingLanguage(TelegramUser user, BotUpdate message)
     {
         if (message.Text == null) return;
         var language = localization.GetUserLanguage(message.Text);
@@ -40,7 +65,7 @@ public class StepHandler(
         user.SetLanguage(language.Value);
     }
 
-    public void HandleChoosingRoles(TelegramUser user, BotUpdate update)
+    private void HandleChoosingRoles(TelegramUser user, BotUpdate update)
     {
         var gameSession = sessions.CreateSession(user);
 
@@ -60,7 +85,7 @@ public class StepHandler(
         }
     }
 
-    public void HandleCanceledAsHost(TelegramUser user, BotUpdate message)
+    private void HandleCanceledAsHost(TelegramUser user, BotUpdate message)
     {
         var gameSession = sessions.GetSession(user.SessionId);
     
@@ -73,7 +98,7 @@ public class StepHandler(
         sessions.DeleteSession(gameSession);
     }
 
-    public async Task HandleStartedAsHost(TelegramUser user, BotUpdate message)
+    private async Task HandleStartedAsHost(TelegramUser user, BotUpdate message)
     {
         var gameSession = sessions.GetSession(user.SessionId);
         
@@ -90,13 +115,13 @@ public class StepHandler(
         sessions.DeleteSession(gameSession);
     }
 
-    public void HandleCanceledAsRole(TelegramUser user, BotUpdate message)
+    private void HandleCanceledAsRole(TelegramUser user, BotUpdate message)
     {
         var gameSession = sessions.GetSession(user.SessionId);
         gameSession?.RemovePlayer(user);
     }
 
-    public void HandleEnteringSessionId(TelegramUser user, BotUpdate message)
+    private void HandleEnteringSessionId(TelegramUser user, BotUpdate message)
     {
         var session = sessions.GetSession(message.Text);
         if (session is null) throw new BusinessException("Ошибка Id! Проверь правильность Id и введи еще раз.");

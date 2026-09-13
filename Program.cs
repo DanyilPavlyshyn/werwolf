@@ -28,6 +28,8 @@ localizationService.LoadLanguage("ru");
 ChatService chatService = new ChatService(
     sessionService, botClient, languageService,
     localizationService, userService, cts.Token);
+StepHandler stepHandler = new StepHandler(
+    sessionService, localizationService, chatService, userService);
 
 botClient.StartReceiving(
     updateHandler: HandleUpdateAsync,
@@ -74,9 +76,10 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
     
     try
     {
+        await stepHandler.HandleAsync(user, botUpdate);
         UserStepDispatcher.SetActualStep(user, botUpdate);
-        
-        
+        await chatService.GetStepResponse(user);
+
         /*
         switch (user.Step)
         {
@@ -112,7 +115,7 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
                 await Task.Delay(2000);
                 session!.RemovePlayer(testPlayer);
                 //end test
-                
+
                 break;
             case _UserStep.WaitingPlayersToJoin:
                 await chatService.StartOrCancelGame(botUpdate, user);

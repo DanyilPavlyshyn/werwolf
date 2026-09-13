@@ -213,7 +213,7 @@
     <!-- Rollen-Liste wird dynamisch gerendert -->
 </div>
 
-<button class="confirm-btn" onclick="submitRoles()">Подтвердить</button>
+<button class="confirm-btn" id="confirmRolesButton" disabled>Подтвердить</button>
 
 <script type="module">
     const tg = window.Telegram.WebApp;
@@ -251,6 +251,10 @@
     const rolesData = await loadRolesData();
     // Set zur Speicherung der ausgewählten Rollen
     const selectedRoles = new Set();
+
+    const confirmButton = document.getElementById('confirmRolesButton');
+    confirmButton.addEventListener('click', submitRoles);
+    confirmButton.disabled = false;
 
     const listContainer = document.getElementById('rolesList');
 

@@ -19,8 +19,6 @@ public static class UserStepDispatcher
                 user.SetStep(user.Language == null 
                     ? UserStep.ChoosingLanguage 
                     : UserStep.ChoosingPlayMode);
-                // buttons for langs
-                // languageInputHandler
                 break;
             case UserStep.ChoosingPlayMode:
                 switch (message)
@@ -39,8 +37,6 @@ public static class UserStepDispatcher
                 }
                 break;
             case UserStep.ChoosingRoles:
-                // webForm for Roles choice
-                // webFormDataInputHandler
                 if (message.WebData is { } data)
                 {
                     var result = JsonSerializer
