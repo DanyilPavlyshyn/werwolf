@@ -215,7 +215,7 @@
 
 <button class="confirm-btn" onclick="submitRoles()">Подтвердить</button>
 
-<script>
+<script type="module">
     const tg = window.Telegram.WebApp;
     tg.expand();
 
@@ -248,7 +248,7 @@
     }
 
     // Rollen-Daten mit Identifikatoren und passenden Emojis
-    const rolesData = loadRolesData();
+    const rolesData = await loadRolesData();
     // Set zur Speicherung der ausgewählten Rollen
     const selectedRoles = new Set();
 
