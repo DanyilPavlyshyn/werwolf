@@ -53,13 +53,12 @@ public static class UserStepDispatcher
                 }
                 break;
             case UserStep.WaitingPlayersToJoin:
-                // button to Cancel Session
-                // cancelSessionInputHandler
-                // if handler.success => user.SetStep(UserStep.ChoosingPlayMode);
+                if (message is { Text: "Отменить игру ❌" })
+                {
+                    user.SetStep(UserStep.CanceledAsHost);
+                }
                 break;
             case UserStep.ReadyToStart:
-                // buttons Start and Cancel session
-                // StartCancelInputHandler
                 switch (message)
                 {
                     case { Text: "Раздать карты 🃏" }:
@@ -71,24 +70,21 @@ public static class UserStepDispatcher
                 }
                 break;
             case UserStep.EnteringSessionId:
-                // button to Exit Session
-                // SessionIdInputHandler
-                // if handler.success => user.SetStep(UserStep.WaitingStart);
-                // if handler.error => no changes
                 if (message is { Text: "Покинуть игру ❌" })
                 {
                     user.SetStep(UserStep.CanceledAsRole);
                 }
                 break;
             case UserStep.WaitingStart:
-                // button to Exit Session
                 if (message is { Text: "Покинуть игру ❌" })
                 {
                     user.SetStep(UserStep.CanceledAsRole);
                 }
                 break;
             default:
-                user.SetStep(UserStep.None);
+                user.SetStep(user.Language == null 
+                    ? UserStep.ChoosingLanguage 
+                    : UserStep.ChoosingPlayMode);
                 break;
         }
     }

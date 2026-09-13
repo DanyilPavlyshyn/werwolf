@@ -44,14 +44,19 @@ public class ChatService(
                 );
                 break;
             case UserStep.WaitingPlayersToJoin:
+                await SendMessage(
+                    user,
+                    $"Роли выбраны, теперь сообщи Id игрокам и ожидай их подключения. ID:\n<blockquote>{user.SessionId!.ToUpper()}</blockquote>",
+                    ButtonsService.GetSessionCancelButtons()
+                );
                 break;
             case UserStep.ReadyToStart:
                 break;
             case UserStep.EnteringSessionId:
-                await bot.SendMessage(
-                    chatId: user.Id,
-                    text: "Хорошо, если введущий уже создал игру и сообщил тебе id, отправь мне его в чате:",
-                    cancellationToken: cancellationToken
+                await SendMessage(
+                    user,
+                    "Хорошо, если введущий уже создал игру и сообщил тебе id, отправь мне его в чате:",
+                    ButtonsService.GetLeaveSessionButtons()
                 );
                 break;
             case UserStep.WaitingStart:
@@ -90,158 +95,6 @@ public class ChatService(
             replyMarkup: buttons ?? new ReplyKeyboardRemove(),
             cancellationToken: cancellationToken
         );
-    }
-    
-    public async Task GetChooseLanguageScreen(TelegramUser user)
-    {
-        user.SetStep(UserStep.ChoosingLanguage);
-        await SendMessage(
-            user, 
-            "Hi! Please choose your language:", 
-            ButtonsService.GetChooseLanguageButtons());
-    }
-    public async Task SetLanguage(BotUpdate message, TelegramUser user)
-    {
-        if (message.Text is null) return;
-        
-        var language = localizationService.GetUserLanguage(message.Text);
-        
-        if (language == null) return;
-        
-        user.SetLanguage(language.Value);
-        user.SetStep(UserStep.ChoosingPlayMode);
-        await GetChoosePlayModeScreen(message, user);
-    }
-    public async Task GetChoosePlayModeScreen(BotUpdate message, TelegramUser user)
-    {
-        user.SetStep(UserStep.ChoosingPlayMode);
-        await SendMessage(
-            user,
-            "Привет! Хочешь играть или вести игру?",
-            ButtonsService.GetChoosePlayModeButtons()
-        );
-        
-    }
-
-    public async Task GetHostPlayerLanguageScreen(BotUpdate message, TelegramUser user)
-    {
-        if (message is { Text: "Хочу быть ведущим 📝" })
-        {
-            user.SetStep(UserStep.ChoosingRoles);
-            await SendMessage(
-                user,
-                "Отлично, теперь нужно выбрать роли. Количество ролей должно соответствовать количеству игроков.",
-                ButtonsService.GetChooseRolesButtons(user.Language)
-            );
-        }
-        else if (message is { Text: "Хочу играть 🐺" })
-        {
-            user.SetStep(UserStep.EnteringSessionId);
-            await bot.SendMessage(
-                chatId: user.Id,
-                text: "Хорошо, если введущий уже создал игру и сообщил тебе id, отправь мне его в чате:",
-                cancellationToken: cancellationToken
-            );
-        }
-        else if (message is { Text: "Change language 🌍" })
-        {
-            user.SetStep(UserStep.ChoosingLanguage);
-            await bot.SendMessage(
-                chatId: user.Id,
-                text: "Hi! Please choose your language:",
-                replyMarkup: ButtonsService.GetChooseLanguageButtons(),
-                cancellationToken: cancellationToken
-            );
-        }
-    }
-
-    public async Task GetWaitingRoleScreen(TelegramUser user, BotUpdate update)
-    {
-            var session = sessionService.GetSession(update.Text);
-            if (session is null) throw new BusinessException("Ошибка Id! Проверь правильность Id и введи еще раз.");
-            
-            var player = new Player(user, false);
-            session.AddPlayer(player);
-            user.SetStep(UserStep.WaitingStart);
-            await SendMessage(
-                user,
-                "Подключено! Теперь ожидай начала игры и получения своей роли.",
-                ButtonsService.GetLeaveSessionButtons());
-    }
-
-    public async Task GetLeaveSessionScreen(BotUpdate message, TelegramUser user)
-    {
-        if (message is { Text: "Покинуть игру ❌" })
-        {
-            var gameSession = sessionService.GetSession(user.SessionId);
-            gameSession?.RemovePlayer(user);
-            
-            user.SetStep(UserStep.None);
-            await SendMessage(
-                user,
-                "Отключено, пиши, если захочешь поиграть. :)"
-            );
-        }
-    }
-
-    public async Task GetHostLobbyScreen(BotUpdate update, TelegramUser user)
-    {
-        var gameSession = sessionService.CreateSession(user);
-        
-        if (update.WebData is { } data)
-        {
-            var result = JsonSerializer
-                .Deserialize<RolesChoice>(data);
-
-            if (result?.action == "confirmRoles")
-            {
-                gameSession.SaveRoleSelection(result.roles);
-                user.SetStep(UserStep.WaitingPlayersToJoin);
-                gameSession.AddPlayersObserver(async (_, updatedPlayers) =>
-                {
-                    await SendPlayerListToHostAsync(gameSession);
-                });
-                
-                await SendMessage(
-                    user,
-                    $"Роли выбраны, теперь сообщи Id игрокам и ожидай их подключения. ID:<blockquote>{gameSession.Id.ToUpper()}</blockquote>",
-                    ButtonsService.GetSessionCancelButtons()
-                );
-            }
-        }
-    }
-
-    public async Task StartOrCancelGame(BotUpdate update, TelegramUser user)
-    {
-        var gameSession = sessionService.GetSession(user.SessionId);
-        
-        if (gameSession == null) 
-        {
-            user.SetStep(UserStep.None);
-            throw new BusinessException("Произошла ошибка. Создай новую игру или присоеденись.");
-        }
-
-        switch (update)
-        {
-            case { Text: "Раздать карты 🃏" }:
-                user.SetStep(UserStep.StartedAsHost);
-                await SendRoleCardsToPlayersAsync(gameSession);
-                await SendPlayersAndRolesToHostAsync(gameSession);
-                await SendRulesToHostAsync(gameSession);
-                break;
-            case { Text: "Отменить игру ❌" }:
-                await SendMessage(
-                    user,
-                    "Игровая сессия отменена. \n\n Захочешь еще поиграть - пиши. :)"
-                );
-                break;
-        }
-        
-        // setting state to default and deleting Session to free space
-        userService.SetStepForUsers(gameSession.Players, UserStep.ChoosingLanguage);
-        user.SetStep(UserStep.ChoosingLanguage);
-        user.SessionId = null;
-        sessionService.DeleteSession(gameSession);
     }
 
     public async Task SendPlayersAndRolesToHostAsync(GameSession gameSession)
