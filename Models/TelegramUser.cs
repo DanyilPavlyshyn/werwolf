@@ -13,14 +13,17 @@ public enum UserLanguage
 public enum UserStep
 {
     None,
-    ChooseLanguage,
-    LanguageChosed,
-    ChoosePlayMode,
-    EnterSessionId,
-    AwaitingRole,
-    ChooseRoles,
+    ChoosingLanguage,
+    ChoosingPlayMode,
+    ChoosingRoles,
     WaitingPlayersToJoin,
-    GameStarted
+    ReadyToStart,
+    EnteringSessionId,
+    WaitingStart,
+    StartedAsHost,
+    CanceledAsHost,
+    CanceledAsRole,
+    ErrorByChoosingRoles
 }
 
 public class TelegramUser(

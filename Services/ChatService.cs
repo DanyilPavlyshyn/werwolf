@@ -5,7 +5,6 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Werwolf_Bot.Models;
-using Werwolf_Bot.Models.services;
 
 namespace Werwolf_Bot.Services;
 
@@ -36,7 +35,7 @@ public class ChatService(
     
     public async Task GetChooseLanguageScreen(TelegramUser user)
     {
-        user.SetStep(UserStep.ChooseLanguage);
+        user.SetStep(UserStep.ChoosingLanguage);
         await SendMessage(
             user, 
             "Hi! Please choose your language:", 
@@ -51,12 +50,12 @@ public class ChatService(
         if (language == null) return;
         
         user.SetLanguage(language.Value);
-        user.SetStep(UserStep.LanguageChosed);
+        user.SetStep(UserStep.ChoosingPlayMode);
         await GetChoosePlayModeScreen(message, user);
     }
     public async Task GetChoosePlayModeScreen(BotUpdate message, TelegramUser user)
     {
-        user.SetStep(UserStep.ChoosePlayMode);
+        user.SetStep(UserStep.ChoosingPlayMode);
         await SendMessage(
             user,
             "Привет! Хочешь играть или вести игру?",
@@ -69,7 +68,7 @@ public class ChatService(
     {
         if (message is { Text: "Хочу быть ведущим 📝" })
         {
-            user.SetStep(UserStep.ChooseRoles);
+            user.SetStep(UserStep.ChoosingRoles);
             await SendMessage(
                 user,
                 "Отлично, теперь нужно выбрать роли. Количество ролей должно соответствовать количеству игроков.",
@@ -78,7 +77,7 @@ public class ChatService(
         }
         else if (message is { Text: "Хочу играть 🐺" })
         {
-            user.SetStep(UserStep.EnterSessionId);
+            user.SetStep(UserStep.EnteringSessionId);
             await bot.SendMessage(
                 chatId: user.Id,
                 text: "Хорошо, если введущий уже создал игру и сообщил тебе id, отправь мне его в чате:",
@@ -87,7 +86,7 @@ public class ChatService(
         }
         else if (message is { Text: "Change language 🌍" })
         {
-            user.SetStep(UserStep.ChooseLanguage);
+            user.SetStep(UserStep.ChoosingLanguage);
             await bot.SendMessage(
                 chatId: user.Id,
                 text: "Hi! Please choose your language:",
@@ -104,7 +103,7 @@ public class ChatService(
             
             var player = new Player(user, false);
             session.AddPlayer(player);
-            user.SetStep(UserStep.AwaitingRole);
+            user.SetStep(UserStep.WaitingStart);
             await SendMessage(
                 user,
                 "Подключено! Теперь ожидай начала игры и получения своей роли.",
@@ -159,14 +158,14 @@ public class ChatService(
         
         if (gameSession == null) 
         {
-            user.SetStep(UserStep.ChooseLanguage);
+            user.SetStep(UserStep.None);
             throw new BusinessException("Произошла ошибка. Создай новую игру или присоеденись.");
         }
 
         switch (update)
         {
             case { Text: "Раздать карты 🃏" }:
-                user.SetStep(UserStep.GameStarted);
+                user.SetStep(UserStep.StartedAsHost);
                 await SendRoleCardsToPlayersAsync(gameSession);
                 await SendPlayersAndRolesToHostAsync(gameSession);
                 await SendRulesToHostAsync(gameSession);
@@ -180,13 +179,13 @@ public class ChatService(
         }
         
         // setting state to default and deleting Session to free space
-        userService.SetStepForUsers(gameSession.Players, UserStep.ChooseLanguage);
-        user.SetStep(UserStep.ChooseLanguage);
+        userService.SetStepForUsers(gameSession.Players, UserStep.ChoosingLanguage);
+        user.SetStep(UserStep.ChoosingLanguage);
         user.SessionId = null;
         sessionService.DeleteSession(gameSession);
     }
 
-    private async Task SendPlayersAndRolesToHostAsync(GameSession gameSession)
+    public async Task SendPlayersAndRolesToHostAsync(GameSession gameSession)
     {
         StringBuilder rolePlayerList = new StringBuilder();
         
@@ -204,7 +203,7 @@ public class ChatService(
         );
     }
 
-    private async Task SendRulesToHostAsync(GameSession gameSession)
+    public async Task SendRulesToHostAsync(GameSession gameSession)
     {
         StringBuilder roleDescriptions = new StringBuilder();
         StringBuilder rulesFirstNight = new StringBuilder();
@@ -251,7 +250,7 @@ public class ChatService(
         );
     }
 
-    private async Task SendPlayerListToHostAsync(GameSession gameSession)
+    public async Task SendPlayerListToHostAsync(GameSession gameSession)
     {
         if (gameSession.Players.Count == gameSession.SelectedRoles.Count)
         {
@@ -281,7 +280,7 @@ public class ChatService(
         }
     }
 
-    private async Task SendRoleCardsToPlayersAsync(GameSession gameSession)
+    public async Task SendRoleCardsToPlayersAsync(GameSession gameSession)
     {
         gameSession.AssignRolesToPlayers();
         

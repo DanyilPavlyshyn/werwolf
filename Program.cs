@@ -74,48 +74,51 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
     
     try
     {
-        // ToDo: stepDispatcher
-        // ToDo: stepHandler
+        UserStepDispatcher.SetActualStep(user, botUpdate);
+        
+        
+        /*
         switch (user.Step)
         {
-            case UserStep.None:
+            case _UserStep.None:
                 await chatService.GetChooseLanguageScreen(user);
                 break;
-            case UserStep.ChooseLanguage:
+            case _UserStep.ChooseLanguage:
                 await chatService.SetLanguage(botUpdate, user);
                 break;
-            case UserStep.LanguageChosed:
+            case _UserStep.LanguageChosed:
                 await chatService.GetChoosePlayModeScreen(botUpdate, user);
                 break;
-            case UserStep.ChoosePlayMode:
+            case _UserStep.ChoosePlayMode:
                 await chatService.GetHostPlayerLanguageScreen(botUpdate, user);
                 break;
-            case UserStep.EnterSessionId:
+            case _UserStep.EnterSessionId:
                 await chatService.GetWaitingRoleScreen(user, botUpdate);
                 break;
-            case UserStep.AwaitingRole:
+            case _UserStep.AwaitingRole:
                 await chatService.GetLeaveSessionScreen(botUpdate, user);
                 break;
-            case UserStep.ChooseRoles:
+            case _UserStep.ChooseRoles:
                 await chatService.GetHostLobbyScreen(botUpdate, user);
-                
+
                 /* test: add and remove user to session
                 var testUser = new TelegramUser(123, "testUN", "testFN", "testLN");
                 var testPlayer = new Player(testUser, false);
                 var session = sessionService.GetGameSessionByHostId(user.Id);
-                
+
                 await Task.Delay(2000);
                 session!.AddPlayer(testPlayer);
-                
+
                 await Task.Delay(2000);
                 session!.RemovePlayer(testPlayer);
-                //end test */
+                //end test
                 
                 break;
-            case UserStep.WaitingPlayersToJoin:
+            case _UserStep.WaitingPlayersToJoin:
                 await chatService.StartOrCancelGame(botUpdate, user);
                 break;
         }
+    */
     }
     catch (BusinessException exception)
     {
