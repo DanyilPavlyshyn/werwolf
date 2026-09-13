@@ -68,9 +68,6 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
         update.Message.Text,
         update.Message.WebAppData?.Data
     );
-    
-    // Rewrite the step if no Language set
-    if (user.Language == null) user.SetStep(UserStep.None);
 
     Console.WriteLine($"User: {user.Username}, Step: {user.Step}");
     Console.WriteLine("********");
@@ -85,10 +82,10 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
                 await chatService.GetChooseLanguageScreen(user);
                 break;
             case UserStep.ChooseLanguage:
-                await chatService.GetChoosePlayModeScreen(botUpdate, user);
+                await chatService.SetLanguage(botUpdate, user);
                 break;
             case UserStep.LanguageChosed:
-                chatService.SetLanguage(botUpdate, user);
+                await chatService.GetChoosePlayModeScreen(botUpdate, user);
                 break;
             case UserStep.ChoosePlayMode:
                 await chatService.GetHostPlayerLanguageScreen(botUpdate, user);

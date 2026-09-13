@@ -42,7 +42,7 @@ public class ChatService(
             "Hi! Please choose your language:", 
             ButtonsService.GetChooseLanguageButtons());
     }
-    public void SetLanguage(BotUpdate message, TelegramUser user)
+    public async Task SetLanguage(BotUpdate message, TelegramUser user)
     {
         if (message.Text is null) return;
         
@@ -51,10 +51,12 @@ public class ChatService(
         if (language == null) return;
         
         user.SetLanguage(language.Value);
-        user.SetStep(UserStep.ChoosePlayMode);
+        user.SetStep(UserStep.LanguageChosed);
+        await GetChoosePlayModeScreen(message, user);
     }
     public async Task GetChoosePlayModeScreen(BotUpdate message, TelegramUser user)
     {
+        user.SetStep(UserStep.ChoosePlayMode);
         await SendMessage(
             user,
             "Привет! Хочешь играть или вести игру?",
