@@ -11,7 +11,7 @@ public class SessionService
         lock (activeSessions)
         {
             if (GetSession(user.SessionId) != null)
-                throw new BusinessException("Ты уже в игре.");
+                throw new BusinessException("alreadyInGame");
             GameSession session;
             do { session = new GameSession(user.Id); }
             while (activeSessions.Any(s => s.Id == session.Id));

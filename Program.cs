@@ -17,14 +17,10 @@ var botClient = new TelegramBotClient(telegramApiKey);
 using var cts = new CancellationTokenSource();
 SessionService sessionService = new SessionService();
 
-// ToDo: lokalization for en, de, ua
-var languageService = new LanguageService("ru");
 var localizationService = new LocalizationService();
 
-localizationService.LoadLanguage("ru");
 ChatService chatService = new ChatService(
-    sessionService, botClient, languageService,
-    localizationService, userService, cts.Token);
+    botClient, localizationService, userService, cts.Token);
 StepHandler stepHandler = new StepHandler(
     sessionService, localizationService, chatService, userService);
 
@@ -59,8 +55,7 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
     }
     catch (BusinessException exception)
     {
-        await chatService.SendMessage(user, 
-            exception.Message);
+        await chatService.SendBusinessError(user, exception);
     }
 
     // ToDo: logging StepHandler

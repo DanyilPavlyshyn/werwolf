@@ -19,9 +19,9 @@ public class GameSession(long hostId)
     {
         lock (_players)
         {
-            if (RolesAssigned) throw new BusinessException("Игра уже начинается.");
-            if (_players.Any(p => p.User.Id == player.User.Id)) throw new BusinessException("Player is already in this session.");
-            if (_players.Count >= _selectedRoles.Count) throw new BusinessException("This session is already full.");
+            if (RolesAssigned) throw new BusinessException("gameAlreadyStarting");
+            if (_players.Any(p => p.User.Id == player.User.Id)) throw new BusinessException("playerAlreadyInSession");
+            if (_players.Count >= _selectedRoles.Count) throw new BusinessException("sessionFull");
             
             player.User.SessionId = Id;
             _players.Add(player);
@@ -32,7 +32,7 @@ public class GameSession(long hostId)
     {
         lock (_players)
         {
-            if (RolesAssigned) throw new BusinessException("Игра уже начинается.");
+            if (RolesAssigned) throw new BusinessException("gameAlreadyStarting");
             var player = _players.FirstOrDefault(x => x.User.Id == user.Id);
 
             if (player == null) return;
@@ -54,7 +54,7 @@ public class GameSession(long hostId)
         if (RolesAssigned) return;
         if (Players.Count == 0 || Players.Count != _selectedRoles.Count)
         {
-            throw new BusinessException("Количество игроков не соответствует количеству ролей.");
+            throw new BusinessException("playerRoleCountMismatch");
         }
 
         var randomizedRoles = _selectedRoles.ToArray();

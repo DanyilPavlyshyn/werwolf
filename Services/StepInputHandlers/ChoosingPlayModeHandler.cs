@@ -1,21 +1,14 @@
-using Telegram.Bot.Types;
 using Werwolf_Bot.Models;
 
 namespace Werwolf_Bot.Services.StepInputHandlers;
 
-public class ChoosingPlayModeHandler()
+public class ChoosingPlayModeHandler(LocalizationService localization)
 {
-    public StepResult GetResult(BotUpdate update)
+    public StepResult GetResult(TelegramUser user, BotUpdate update)
     {
-        switch (update)
-        {
-            case { Text: "Хочу быть ведущим 📝" }:
-                return StepResult.HostModeSelected;
-            case { Text: "Хочу играть 🐺" }:
-                return StepResult.PlayerModeSelected;
-            case { Text: "Change language 🌍" }:
-                return StepResult.ChangeLanguageSelected;
-        }
+        if (localization.Matches(user.Language, update.Text, "button.chooseHost")) return StepResult.HostModeSelected;
+        if (localization.Matches(user.Language, update.Text, "button.choosePlayer")) return StepResult.PlayerModeSelected;
+        if (localization.Matches(user.Language, update.Text, "button.changeLanguage")) return StepResult.ChangeLanguageSelected;
         return StepResult.NoChange;
     }
 }

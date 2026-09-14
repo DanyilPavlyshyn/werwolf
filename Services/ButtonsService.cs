@@ -4,120 +4,44 @@ using Werwolf_Bot.Models;
 
 namespace Werwolf_Bot.Services;
 
-public static class ButtonsService 
+public class ButtonsService(LocalizationService localization)
 {
-    private static Dictionary<UserLanguage, string> _langs = new()
+    private KeyboardButton Button(UserLanguage? language, string key) => new(localization.GetText(language, key));
+
+    private static ReplyKeyboardMarkup Keyboard(IEnumerable<IEnumerable<KeyboardButton>> rows) => new(rows)
     {
-        [UserLanguage.English] = "en",
-        [UserLanguage.German] = "de",
-        [UserLanguage.Ukrainian] = "uk",
-        [UserLanguage.Russian] = "ru"
+        ResizeKeyboard = true,
+        OneTimeKeyboard = true
     };
-    
-    public static ReplyKeyboardMarkup GetChooseLanguageButtons()
-    {
-        return new ReplyKeyboardMarkup(new[]
-        {
-            new[]
-            {
-                new KeyboardButton("EN 🇬🇧"),
-                new KeyboardButton("DE 🇩🇪")
-            },
-            new[]
-            {
-                new KeyboardButton("UA 🇺🇦"),
-                new KeyboardButton("RU 🇷🇺")
-            }
-        })
-        {
-            ResizeKeyboard = true, 
-            OneTimeKeyboard = true 
-        };
-    }
-    
-    public static ReplyKeyboardMarkup GetChoosePlayModeButtons()
-    {
-        return new ReplyKeyboardMarkup(new[]
-        {
-            new[]
-            {
-                new KeyboardButton("Хочу быть ведущим 📝")
-            },
-            new[]
-            {
-                new KeyboardButton("Хочу играть 🐺")
-            },
-            new[]
-            {
-                new KeyboardButton("Change language 🌍")
-            }
-        })
-        {
-            ResizeKeyboard = true, 
-            OneTimeKeyboard = true 
-        };
-    }
-    
-    public static ReplyKeyboardMarkup GetChooseRolesButtons(UserLanguage? language)
-    {
-        var langCode = _langs[language ?? UserLanguage.English];
-        
-        return new ReplyKeyboardMarkup(KeyboardButton.WithWebApp(
-            text: "🐺 Выбор ролей",
-            webApp: new WebAppInfo { Url = $"https://danyilpavlyshyn.github.io/werwolf/Assets/Pages/roles.html?language={langCode}" }
-        ))
-        {
-            ResizeKeyboard = true,
-            OneTimeKeyboard = true
-        };
-    }
 
-    public static ReplyKeyboardMarkup GetSessionStartEndButtons()
-    {
-        return new ReplyKeyboardMarkup(new[]
-        {
-            new[]
-            {
-                new KeyboardButton("Раздать карты 🃏")
-            },
-            new[]
-            {
-                new KeyboardButton("Отменить игру ❌")
-            }
-        })
-        {
-            ResizeKeyboard = true, 
-            OneTimeKeyboard = true 
-        };
-    }
+    private ReplyKeyboardMarkup Rows(UserLanguage? language, params string[] keys) =>
+        Keyboard(keys.Select(key => new[] { Button(language, key) }));
 
-    public static ReplyKeyboardMarkup GetSessionCancelButtons()
+    public ReplyKeyboardMarkup GetChooseLanguageButtons(UserLanguage? language) => Keyboard(new[]
     {
-        return new ReplyKeyboardMarkup(new[]
-        {
-            new[]
-            {
-                new KeyboardButton("Отменить игру ❌")
-            }
-        })
-        {
-            ResizeKeyboard = true, 
-            OneTimeKeyboard = true 
-        };
-    }
-    
-    public static ReplyKeyboardMarkup GetLeaveSessionButtons()
+        new[] { Button(language, "button.chooseEnglish"), Button(language, "button.chooseGerman") },
+        new[] { Button(language, "button.chooseUkrainian"), Button(language, "button.chooseRussian") }
+    });
+
+    public ReplyKeyboardMarkup GetChoosePlayModeButtons(UserLanguage? language) =>
+        Rows(language, "button.chooseHost", "button.choosePlayer", "button.changeLanguage");
+
+    public ReplyKeyboardMarkup GetChooseRolesButtons(UserLanguage? language) => Keyboard(new[]
     {
-        return new ReplyKeyboardMarkup(new[]
-        {
-            new[]
+        new[] { KeyboardButton.WithWebApp(
+            text: localization.GetText(language, "button.chooseRoles"),
+            webApp: new WebAppInfo
             {
-                new KeyboardButton("Покинуть игру ❌")
-            }
-        })
-        {
-            ResizeKeyboard = true, 
-            OneTimeKeyboard = true 
-        };
-    }
+                Url = $"https://danyilpavlyshyn.github.io/werwolf/Assets/Pages/roles.html?language={LocalizationService.GetLanguageCode(language)}"
+            }) }
+    });
+
+    public ReplyKeyboardMarkup GetSessionStartEndButtons(UserLanguage? language) =>
+        Rows(language, "button.dealCards", "button.cancelSession");
+
+    public ReplyKeyboardMarkup GetSessionCancelButtons(UserLanguage? language) =>
+        Rows(language, "button.cancelSession");
+
+    public ReplyKeyboardMarkup GetLeaveSessionButtons(UserLanguage? language) =>
+        Rows(language, "button.leaveSession");
 }

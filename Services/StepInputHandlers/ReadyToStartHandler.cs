@@ -2,7 +2,7 @@ using Werwolf_Bot.Models;
 
 namespace Werwolf_Bot.Services.StepInputHandlers;
 
-public class ReadyToStartHandler
+public class ReadyToStartHandler(LocalizationService localization)
 {
     public async Task<StepResult> GetResult(
         TelegramUser user, 
@@ -11,14 +11,14 @@ public class ReadyToStartHandler
         ChatService chat,
         UserService users)
     {
-        if (message is { Text: "Раздать карты 🃏" })
+        if (localization.Matches(user.Language, message.Text, "button.dealCards"))
         {
             var gameSession = sessions.GetSession(user.SessionId);
 
             if (gameSession == null)
             {
                 user.SessionId = null;
-                throw new BusinessException("Произошла ошибка. Создай новую игру или присоеденись.");
+                throw new BusinessException("sessionRecoveryError");
             }
 
             await chat.SendRoleCardsToPlayersAsync(gameSession);
@@ -30,9 +30,9 @@ public class ReadyToStartHandler
             return StepResult.GameStarted;
         }
 
-        if (message is { Text: "Отменить игру ❌" })
+        if (localization.Matches(user.Language, message.Text, "button.cancelSession"))
         {
-            return new WaitingPlayersToJoinHandler().GetResult(user, message, sessions, users);
+            return new WaitingPlayersToJoinHandler(localization).GetResult(user, message, sessions, users);
         }
         
         return StepResult.NoChange;

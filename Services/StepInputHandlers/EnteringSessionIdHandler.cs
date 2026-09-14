@@ -2,14 +2,14 @@ using Werwolf_Bot.Models;
 
 namespace Werwolf_Bot.Services.StepInputHandlers;
 
-public class EnteringSessionIdHandler
+public class EnteringSessionIdHandler(LocalizationService localization)
 {
     public StepResult GetResult(
         TelegramUser user, 
         BotUpdate message, 
         SessionService sessions)
     {
-        if (message is { Text: "Покинуть игру ❌" })
+        if (localization.Matches(user.Language, message.Text, "button.leaveSession"))
         {
             var gameSession = sessions.GetSession(user.SessionId);
             gameSession?.RemovePlayer(user);
@@ -21,7 +21,7 @@ public class EnteringSessionIdHandler
         
         if (session is null)
         {
-            throw new BusinessException("Ошибка Id! Проверь правильность Id и введи еще раз.");
+            throw new BusinessException("invalidSessionId");
         }
             
         var player = new Player(user, false);

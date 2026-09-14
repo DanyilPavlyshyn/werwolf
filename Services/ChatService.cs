@@ -1,5 +1,4 @@
-using System.Text;
-using System.Text.Json;
+using System.Net;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -8,222 +7,120 @@ using Werwolf_Bot.Models;
 
 namespace Werwolf_Bot.Services;
 
-//<summary>
-// Service class for chat communication actions
-//</summary>
 public class ChatService(
-    SessionService sessionService,
     ITelegramBotClient bot,
-    LanguageService localService,
-    LocalizationService localizationService,
-    UserService userService,
+    LocalizationService localization,
+    UserService users,
     CancellationToken cancellationToken)
 {
-    public async Task GetStepResponse(TelegramUser user)
+    private readonly ButtonsService buttons = new(localization);
+
+    private string Text(TelegramUser user, string key, params object?[] arguments) =>
+        localization.GetText(user.Language, key, arguments);
+
+    private static string Html(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
+
+    private TelegramUser Host(GameSession session) => users.FindUser(session.HostId)
+        ?? throw new BusinessException("sessionNotFound");
+
+    public Task GetStepResponse(TelegramUser user) => user.Step switch
     {
-        switch (user.Step)
-        {
-            case UserStep.ChoosingLanguage:
-                await SendMessage(
-                    user, 
-                    "Hi! Please choose your language:", 
-                    ButtonsService.GetChooseLanguageButtons());
-                break;
-            case UserStep.ChoosingPlayMode:
-                await SendMessage(
-                    user,
-                    "Привет! Хочешь играть или вести игру?",
-                    ButtonsService.GetChoosePlayModeButtons()
-                );
-                break;
-            case UserStep.ChoosingRoles:
-                await SendMessage(
-                    user,
-                    "Отлично, теперь нужно выбрать роли. Количество ролей должно соответствовать количеству игроков.",
-                    ButtonsService.GetChooseRolesButtons(user.Language)
-                );
-                break;
-            case UserStep.WaitingPlayersToJoin:
-                await SendMessage(
-                    user,
-                    $"Роли выбраны, теперь сообщи Id игрокам и ожидай их подключения. ID:\n<blockquote>{user.SessionId!.ToUpper()}</blockquote>",
-                    ButtonsService.GetSessionCancelButtons()
-                );
-                break;
-            case UserStep.ReadyToStart:
-                break;
-            case UserStep.EnteringSessionId:
-                await SendMessage(
-                    user,
-                    "Хорошо, если введущий уже создал игру и сообщил тебе id, отправь мне его в чате:",
-                    ButtonsService.GetLeaveSessionButtons()
-                );
-                break;
-            case UserStep.WaitingStart:
-                await SendMessage(
-                    user,
-                    "Подключено! Теперь ожидай начала игры и получения своей роли.",
-                    ButtonsService.GetLeaveSessionButtons());
-                break;
-            case UserStep.CanceledAsRole:
-                await SendMessage(
-                    user,
-                    "Отключено, пиши, если захочешь поиграть. :)"
-                );
-                break;
-            case UserStep.CanceledAsHost:
-                await SendMessage(
-                    user,
-                    "Игровая сессия отменена. \n\n Захочешь еще поиграть - пиши. :)"
-                );
-                break;
-            case UserStep.SessionCancelledByHost:
-                await SendMessage(
-                    user,
-                    "Игровая сессия отменена ведущим. \n\n Захочешь еще поиграть - пиши. :)"
-                );
-                break;
-            default:
-                break;
-        }
-    }
-    
-    public async Task SendMessage(
-        TelegramUser user,
-        string message, 
-        ReplyMarkup? buttons = null,
-        ParseMode? parseMode = ParseMode.Html)
+        UserStep.ChoosingLanguage => SendMessage(user, Text(user, "pleaseChooseLanguage"),
+            buttons.GetChooseLanguageButtons(user.Language)),
+        UserStep.ChoosingPlayMode => SendMessage(user, Text(user, "welcome"),
+            buttons.GetChoosePlayModeButtons(user.Language)),
+        UserStep.ChoosingRoles => SendMessage(user, Text(user, "pleaseChooseRoles"),
+            buttons.GetChooseRolesButtons(user.Language)),
+        UserStep.WaitingPlayersToJoin => SendMessage(user,
+            Text(user, "shareSessionId", Html(user.SessionId?.ToUpperInvariant())),
+            buttons.GetSessionCancelButtons(user.Language)),
+        UserStep.EnteringSessionId => SendMessage(user, Text(user, "pleaseEnterId"),
+            buttons.GetLeaveSessionButtons(user.Language)),
+        UserStep.WaitingStart => SendMessage(user, Text(user, "sessionJoined"),
+            buttons.GetLeaveSessionButtons(user.Language)),
+        UserStep.CanceledAsRole => SendMessage(user, Text(user, "sessionLeft")),
+        UserStep.CanceledAsHost => SendMessage(user, Text(user, "sessionCancelled")),
+        UserStep.SessionCancelledByHost => SendMessage(user, Text(user, "sessionCancelledByHost")),
+        _ => Task.CompletedTask
+    };
+
+    public async Task SendMessage(TelegramUser user, string message,
+        ReplyMarkup? buttons = null, ParseMode? parseMode = ParseMode.Html)
     {
-        await bot.SendMessage(
-            chatId: user.Id,
-            text: message,
+        await bot.SendMessage(chatId: user.Id, text: message,
             replyMarkup: buttons ?? new ReplyKeyboardRemove(),
-            parseMode: parseMode ?? ParseMode.None,
-            cancellationToken: cancellationToken
-        );
+            parseMode: parseMode ?? ParseMode.None, cancellationToken: cancellationToken);
     }
 
-    public async Task SendSessionCancelledByHostToPlayers(List<Player> players)
+    public Task SendBusinessError(TelegramUser user, BusinessException error) =>
+        SendMessage(user, Text(user, error.MessageKey, error.Arguments), parseMode: ParseMode.None);
+
+    public Task SendSessionCancelledByHostToPlayers(List<Player> players) =>
+        Task.WhenAll(players.Select(p =>
+            SendMessage(p.User, Text(p.User, "sessionCancelledByHostNotification"))));
+
+    public Task SendPlayersAndRolesToHostAsync(GameSession session)
     {
-        await Task.WhenAll(players.Select(p =>
-            SendMessage(p.User, "Игра была отменена ведущим.")));
+        var host = Host(session);
+        var entries = session.Players.OrderBy(p => p.Role).Select(p => Text(host,
+            "playerRoleListEntry", Html(localization.GetRole(host.Language, p.Role!).Title),
+            Html(p.User.FirstName), Html(p.User.LastName), Html(p.User.Username)));
+        return SendMessage(host, Text(host, "rolesAssigned", string.Join("\n", entries)));
     }
 
-    public async Task SendPlayersAndRolesToHostAsync(GameSession gameSession)
+    public async Task SendRulesToHostAsync(GameSession session)
     {
-        StringBuilder rolePlayerList = new StringBuilder();
-        
-        gameSession.Players
-            .OrderBy(player => player.Role)
-            .ToList()
-            .ForEach(player => rolePlayerList.AppendLine(
-                $"{localService.GetRole(player.Role).Title} - {player.User.FirstName} {player.User.LastName}, @{player.User.Username}"));
-        
-        await bot.SendMessage(
-            chatId: gameSession.HostId,
-            text: $"Роли разданы:\n\n{rolePlayerList}",
-            replyMarkup: new ReplyKeyboardRemove(),
-            cancellationToken: cancellationToken
-        );
+        var host = Host(session);
+        var roles = session.SelectedRoles.Select(key => localization.GetRole(host.Language, key))
+            .OrderBy(role => role.NightPrio).ToList();
+        var descriptions = roles.Select(role => Text(host, "roleDescriptionEntry",
+            Html(role.Title), Html(role.Description)));
+        await SendMessage(host, Text(host, "rolesDescription", string.Join("\n", descriptions)));
+
+        string Order(IEnumerable<RoleInfo> selected) => string.Join("\n", selected
+            .Where(role => role.NightPrio > 0)
+            .Select((role, index) => Text(host, "numberedRoleEntry", index + 1, Html(role.Title))));
+        await SendMessage(host, Text(host, "rolesOrder", Order(roles),
+            Order(roles.Where(role => !role.OnlyFirstNight))));
     }
 
-    public async Task SendRulesToHostAsync(GameSession gameSession)
+    public Task SendPlayerListToHostAsync(GameSession session)
     {
-        StringBuilder roleDescriptions = new StringBuilder();
-        StringBuilder rulesFirstNight = new StringBuilder();
-        StringBuilder rulesAllNights = new StringBuilder();
-        
-        var roleObjects = gameSession.SelectedRoles
-            .Select(role => localService.GetRole(role))
-            .OrderBy(r => r.NightPrio)
-            .ToList();
-        roleObjects.ForEach(role => roleDescriptions.AppendLine($"<b>{role.Title}</b>: {role.Description}"));
-            
-        await bot.SendMessage(
-            chatId: gameSession.HostId,
-            text: $"<blockquote><b>Описание ролей</b>:\n{roleDescriptions}</blockquote>",
-            parseMode: ParseMode.Html,
-            cancellationToken: cancellationToken
-        );
-            
-        for (int i = 0; i < roleObjects.Count; i++)
+        var host = Host(session);
+        if (session.Players.Count == session.SelectedRoles.Count)
         {
-            if (roleObjects[i] == null) continue;
-            if (roleObjects[i] is { NightPrio: 0 }) continue;
-            
-            rulesFirstNight.AppendLine($"{ i+1 }. { roleObjects[i].Title }");
+            var names = session.Players.Select((p, index) => Text(host, "numberedPlayerEntry",
+                index + 1, Html(p.User.FirstName), Html(p.User.LastName), Html(p.User.Username)));
+            var list = Text(host, "playersList", string.Join("\n", names));
+            return SendMessage(host, Text(host, "sessionIsReady", list),
+                buttons.GetSessionStartEndButtons(host.Language));
         }
-        
-        var rolesFromSecondNight = roleObjects
-            .FindAll(role => role.OnlyFirstNight == false )
-            .OrderBy(r => r.NightPrio)
-            .ToList();
-            
-        for (int j = 0; j < rolesFromSecondNight.Count(); j++)
-        {
-            if (rolesFromSecondNight[j] == null) continue;
-            if (rolesFromSecondNight[j] is { NightPrio: 0 }) continue;
-            
-            rulesAllNights.AppendLine($"{ j+1 }. { rolesFromSecondNight[j].Title }");
-        }
-        
-        await bot.SendMessage(
-            chatId: gameSession.HostId,
-            text: $"Называемые роли первой ночи:\n{rulesFirstNight}\nНазываемые роли со второй ночи:\n{rulesAllNights}\nХорошей игры! :)",
-            cancellationToken: cancellationToken
-        );
+        return SendMessage(host, Text(host, "playersCountUpdate", session.Players.Count,
+            session.SelectedRoles.Count - session.Players.Count),
+            buttons.GetSessionCancelButtons(host.Language));
     }
 
-    public async Task SendPlayerListToHostAsync(GameSession gameSession)
+    public async Task SendRoleCardsToPlayersAsync(GameSession session)
     {
-        if (gameSession.Players.Count == gameSession.SelectedRoles.Count)
+        session.AssignRolesToPlayers();
+        foreach (var player in session.Players)
         {
-            var playerNames = gameSession.Players
-                .Select((p, i) => $"{i + 1}. {p.User.FirstName} {p.User.LastName}, @{p.User.Username}").ToList();
-            string playersList = $"Cписок игроков:\n\n{string.Join("\n", playerNames)}";
-            
-            await bot.SendMessage(
-                chatId: gameSession.HostId,
-                text: $"{playersList}\n\nНеобходимое количествово игроков подключено, можешь раздавать карты. Хорошей игры!",
-                replyMarkup: ButtonsService.GetSessionStartEndButtons(),
-                cancellationToken: cancellationToken
-            );
-        }
-        else
-        {
-            int playerCount = gameSession.Players.Count;
-            int playersNeeded = gameSession.SelectedRoles.Count - playerCount;
-            
-            await bot.SendMessage(
-                chatId: gameSession.HostId,
-                text: $"Всего игроков: {playerCount}. Для начала игры необходимо еще: {playersNeeded}",
-                parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown,
-                replyMarkup: ButtonsService.GetSessionCancelButtons(),
-                cancellationToken: cancellationToken
-            );
-        }
-    }
-
-    public async Task SendRoleCardsToPlayersAsync(GameSession gameSession)
-    {
-        gameSession.AssignRolesToPlayers();
-        
-        foreach (var player in gameSession.Players)
-        {
-            if (!player.IsHost && !player.CardDelivered && player.User.SessionId == gameSession.Id)
-            {
-                var filePath = Path.Combine(AppContext.BaseDirectory, "Assets", "Cards", "ru", $"{player.Role}.png");
-                await using FileStream stream = System.IO.File.OpenRead(filePath);
-                await bot.SendPhoto(
-                    chatId: player.User.Id,
-                    photo: InputFile.FromStream(stream, $"{player.Role}.png"),
-                    caption: $"Твоя роль - <b>{localService.GetRole(player.Role).Title}</b>!\nОзнакомся с деталями на карточке.\nХорошей игры! :)",
-                    parseMode: ParseMode.Html,
-                    replyMarkup: new ReplyKeyboardRemove(),
-                    cancellationToken: cancellationToken
-                );
-                player.CardDelivered = true;
-            }
+            if (player.IsHost || player.CardDelivered || player.User.SessionId != session.Id) continue;
+            var languageCode = LocalizationService.GetLanguageCode(player.User.Language);
+            var path = Path.Combine(AppContext.BaseDirectory, "Assets", "Cards", languageCode, $"{player.Role}.png");
+            if (!File.Exists(path))
+                path = Path.Combine(AppContext.BaseDirectory, "Assets", "Cards", "ru", $"{player.Role}.png");
+            // The existing Russian asset uses this legacy spelling.
+            if (!File.Exists(path) && player.Role == "psychopath")
+                path = Path.Combine(AppContext.BaseDirectory, "Assets", "Cards", "ru", "psyhopath.png");
+            var role = localization.GetRole(player.User.Language, player.Role!);
+            await using var stream = File.OpenRead(path);
+            await bot.SendPhoto(chatId: player.User.Id,
+                photo: InputFile.FromStream(stream, $"{player.Role}.png"),
+                caption: Text(player.User, "yourRole", Html(role.Title)),
+                parseMode: ParseMode.Html, replyMarkup: new ReplyKeyboardRemove(),
+                cancellationToken: cancellationToken);
+            player.CardDelivered = true;
         }
     }
 }

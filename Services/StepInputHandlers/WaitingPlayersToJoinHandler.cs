@@ -2,7 +2,7 @@ using Werwolf_Bot.Models;
 
 namespace Werwolf_Bot.Services.StepInputHandlers;
 
-public class WaitingPlayersToJoinHandler
+public class WaitingPlayersToJoinHandler(LocalizationService localization)
 {
     public StepResult GetResult(
         TelegramUser user,
@@ -10,7 +10,7 @@ public class WaitingPlayersToJoinHandler
         SessionService sessions,
         UserService users)
     {
-        if (update.Text != "Отменить игру ❌") return StepResult.NoChange;
+        if (!localization.Matches(user.Language, update.Text, "button.cancelSession")) return StepResult.NoChange;
 
         var session = sessions.GetSession(user.SessionId);
         if (session == null)

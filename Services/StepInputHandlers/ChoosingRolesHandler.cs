@@ -16,13 +16,13 @@ public class ChoosingRolesHandler
         try { choice = JsonSerializer.Deserialize<RolesChoice>(update.WebData); }
         catch (JsonException)
         {
-            throw new BusinessException("Ошибка выбора ролей. Выбери роли ещё раз.");
+            throw new BusinessException("invalidRoleSelection");
         }
         if (choice?.action != "confirmRoles") return StepResult.NoChange;
         if (choice.roles == null || choice.roles.Count == 0 ||
             choice.roles.Any(role => string.IsNullOrWhiteSpace(role) ||
                 localization.GetRole("ru", role) == null))
-            throw new BusinessException("Выбери хотя бы одну роль из списка.");
+            throw new BusinessException("pleaseSelectAtLeastOneRole");
 
         var session = sessions.CreateSession(user);
         session.SaveRoleSelection(choice.roles);

@@ -10,7 +10,7 @@ public class ChoosingLanguageHandler
         LocalizationService localization)
     {
         if (update.Text == null) return  StepResult.NoChange;
-        var language = localization.GetUserLanguage(update.Text);
+        var language = localization.GetUserLanguage(update.Text, user.Language);
         if (language == null) return StepResult.NoChange; 
 
         user.SetLanguage(language.Value);

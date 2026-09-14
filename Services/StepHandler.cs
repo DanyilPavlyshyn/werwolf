@@ -28,19 +28,19 @@ public class StepHandler
         UserService users)
     {
         var choosingLanguage = new ChoosingLanguageHandler();
-        var choosingPlayMode = new ChoosingPlayModeHandler();
+        var choosingPlayMode = new ChoosingPlayModeHandler(localization);
         var choosingRoles = new ChoosingRolesHandler();
-        var enteringSessionId = new EnteringSessionIdHandler();
-        var waitingStart = new WaitingStartHandler();
-        var readyToStart = new ReadyToStartHandler();
-        var waitingPlayersToJoin = new WaitingPlayersToJoinHandler();
+        var enteringSessionId = new EnteringSessionIdHandler(localization);
+        var waitingStart = new WaitingStartHandler(localization);
+        var readyToStart = new ReadyToStartHandler(localization);
+        var waitingPlayersToJoin = new WaitingPlayersToJoinHandler(localization);
 
         _handlers = new()
         {
             [UserStep.ChoosingLanguage] = AsAsync((user, update) =>
                 choosingLanguage.GetResult(user, update, localization)),
             [UserStep.ChoosingPlayMode] = AsAsync((user, update) =>
-                choosingPlayMode.GetResult(update)),
+                choosingPlayMode.GetResult(user, update)),
             [UserStep.ChoosingRoles] = AsAsync((user, update) =>
                 choosingRoles.GetResult(user, update, sessions, localization)),
             [UserStep.EnteringSessionId] = AsAsync((user, update) =>
