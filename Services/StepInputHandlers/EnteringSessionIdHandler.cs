@@ -13,6 +13,7 @@ public class EnteringSessionIdHandler
         {
             var gameSession = sessions.GetSession(user.SessionId);
             gameSession?.RemovePlayer(user);
+            user.SessionId = null;
             return StepResult.LeavedSession;
         }
         
@@ -20,7 +21,7 @@ public class EnteringSessionIdHandler
         
         if (session is null)
         {
-            throw new BusinessException("Отключено. Пиши, если захочешь поиграть. :)");
+            throw new BusinessException("Ошибка Id! Проверь правильность Id и введи еще раз.");
         }
             
         var player = new Player(user, false);

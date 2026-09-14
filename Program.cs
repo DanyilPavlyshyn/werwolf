@@ -28,6 +28,8 @@ ChatService chatService = new ChatService(
 StepHandler stepHandler = new StepHandler(
     sessionService, localizationService, chatService, userService);
 
+var updateProcessor = new UpdateProcessor(stepHandler, sessionService, userService, chatService);
+
 botClient.StartReceiving(
     updateHandler: HandleUpdateAsync,
     errorHandler: HandleErrorAsync,
@@ -50,15 +52,10 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
         update.Message.Text,
         update.Message.WebAppData?.Data
     );
-
-    Console.WriteLine($"User: {user.Username}, Step: {user.Step}");
-    Console.WriteLine("********");
     
     try
     {
-        var stepResult = await stepHandler.HandleAsync(user, botUpdate);
-        await chatService.GetStepResponse(user);
-        UserStepDispatcher.SetActualStep(user, botUpdate, stepResult);
+        await updateProcessor.HandleAsync(user, botUpdate);
     }
     catch (BusinessException exception)
     {

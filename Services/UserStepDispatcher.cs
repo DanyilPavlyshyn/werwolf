@@ -5,6 +5,13 @@ namespace Werwolf_Bot.Services;
 
 public static class UserStepDispatcher
 {
+    public static void UpdateHostStep(TelegramUser host, GameSession session)
+    {
+        host.SetStep(session.Players.Count == session.SelectedRoles.Count && session.Players.Count > 0
+            ? UserStep.ReadyToStart
+            : UserStep.WaitingPlayersToJoin);
+    }
+
     public static void SetActualStep (
         TelegramUser user, BotUpdate message, 
         StepResult stepResult)

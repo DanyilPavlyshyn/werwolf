@@ -4,6 +4,7 @@ public class Player
 {
     public TelegramUser User { get; set; }
     public bool IsHost { get; set; }
+    public bool CardDelivered { get; set; }
     public string? Role { get; set; }
 
     public Player(TelegramUser user, bool isHost, string? role = "dorfbewohner")

@@ -32,18 +32,7 @@ public class ReadyToStartHandler
 
         if (message is { Text: "Отменить игру ❌" })
         {
-            var gameSession = sessions.GetSession(user.SessionId);
-
-            if (gameSession == null)
-            {
-                user.SessionId = null;
-                throw new BusinessException("Игра отменена. Пиши, как захочешь поиграть. :)");
-            }
-            
-            users.SetStepForUsers(gameSession.Players, UserStep.SessionCancelledByHost);
-            user.SessionId = null;
-            sessions.DeleteSession(gameSession);
-            return StepResult.SessionCanceled;
+            return new WaitingPlayersToJoinHandler().GetResult(user, message, sessions, users);
         }
         
         return StepResult.NoChange;

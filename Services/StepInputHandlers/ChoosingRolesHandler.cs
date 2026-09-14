@@ -6,28 +6,26 @@ namespace Werwolf_Bot.Services.StepInputHandlers;
 public class ChoosingRolesHandler
 {
     public StepResult GetResult(
-        TelegramUser user, 
+        TelegramUser user,
         BotUpdate update,
         SessionService sessions,
-        ChatService chat)
+        LocalizationService localization)
     {
-        var gameSession = sessions.CreateSession(user);
-        
-        if (update.WebData is { } data)
+        if (update.WebData == null) return StepResult.NoChange;
+        RolesChoice? choice;
+        try { choice = JsonSerializer.Deserialize<RolesChoice>(update.WebData); }
+        catch (JsonException)
         {
-            var result = JsonSerializer
-                .Deserialize<RolesChoice>(data);
-
-            if (result?.action == "confirmRoles")
-            {
-                gameSession.SaveRoleSelection(result.roles);
-                gameSession.AddPlayersObserver(async (_, updatedPlayers) =>
-                {
-                    await chat.SendPlayerListToHostAsync(gameSession);
-                });
-                return StepResult.RolesChosenByHost;
-            }
+            throw new BusinessException("Ошибка выбора ролей. Выбери роли ещё раз.");
         }
-        return StepResult.NoChange;
+        if (choice?.action != "confirmRoles") return StepResult.NoChange;
+        if (choice.roles == null || choice.roles.Count == 0 ||
+            choice.roles.Any(role => string.IsNullOrWhiteSpace(role) ||
+                localization.GetRole("ru", role) == null))
+            throw new BusinessException("Выбери хотя бы одну роль из списка.");
+
+        var session = sessions.CreateSession(user);
+        session.SaveRoleSelection(choice.roles);
+        return StepResult.RolesChosenByHost;
     }
 }

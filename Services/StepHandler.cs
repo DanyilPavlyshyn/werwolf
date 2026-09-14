@@ -42,7 +42,7 @@ public class StepHandler
             [UserStep.ChoosingPlayMode] = AsAsync((user, update) =>
                 choosingPlayMode.GetResult(update)),
             [UserStep.ChoosingRoles] = AsAsync((user, update) =>
-                choosingRoles.GetResult(user, update, sessions, chat)),
+                choosingRoles.GetResult(user, update, sessions, localization)),
             [UserStep.EnteringSessionId] = AsAsync((user, update) =>
                 enteringSessionId.GetResult(user, update, sessions)),
             [UserStep.WaitingStart] = AsAsync((user, update) =>

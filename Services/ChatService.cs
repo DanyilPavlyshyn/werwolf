@@ -84,7 +84,6 @@ public class ChatService(
                 );
                 break;
             default:
-                user.SetStep(UserStep.None);
                 break;
         }
     }
@@ -99,16 +98,15 @@ public class ChatService(
             chatId: user.Id,
             text: message,
             replyMarkup: buttons ?? new ReplyKeyboardRemove(),
+            parseMode: parseMode ?? ParseMode.None,
             cancellationToken: cancellationToken
         );
     }
 
     public async Task SendSessionCancelledByHostToPlayers(List<Player> players)
     {
-        players.ForEach(async (p) =>
-        {
-            await SendMessage(p.User, "Игра была отменена ведущим.");
-        });
+        await Task.WhenAll(players.Select(p =>
+            SendMessage(p.User, "Игра была отменена ведущим.")));
     }
 
     public async Task SendPlayersAndRolesToHostAsync(GameSession gameSession)
@@ -212,18 +210,19 @@ public class ChatService(
         
         foreach (var player in gameSession.Players)
         {
-            if (!player.IsHost && player.User.SessionId == gameSession.Id)
+            if (!player.IsHost && !player.CardDelivered && player.User.SessionId == gameSession.Id)
             {
-                var filePath = $"Assets/Cards/ru/{player.Role}.png";
+                var filePath = Path.Combine(AppContext.BaseDirectory, "Assets", "Cards", "ru", $"{player.Role}.png");
                 await using FileStream stream = System.IO.File.OpenRead(filePath);
                 await bot.SendPhoto(
                     chatId: player.User.Id,
                     photo: InputFile.FromStream(stream, $"{player.Role}.png"),
                     caption: $"Твоя роль - <b>{localService.GetRole(player.Role).Title}</b>!\nОзнакомся с деталями на карточке.\nХорошей игры! :)",
                     parseMode: ParseMode.Html,
-                    replyMarkup: new ReplyKeyboardRemove()
+                    replyMarkup: new ReplyKeyboardRemove(),
+                    cancellationToken: cancellationToken
                 );
-                player.User.SetStep(UserStep.None);
+                player.CardDelivered = true;
             }
         }
     }

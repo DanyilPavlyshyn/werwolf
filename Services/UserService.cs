@@ -10,17 +10,12 @@ public class UserService
     
     public TelegramUser GetUser(Chat chat)
     {
-        var user = _users.GetValueOrDefault(chat.Id, null);
-        return user ?? CreateUser(chat);
+        return _users.GetOrAdd(chat.Id, _ =>
+            new TelegramUser(chat.Id, chat.Username, chat.FirstName, chat.LastName));
     }
 
-    private TelegramUser CreateUser(Chat chat)
-    {
-        var user = new TelegramUser(chat.Id, chat.Username, chat.FirstName, chat.LastName);
-        _users[chat.Id] = user;
-        return user;
-    }
-    
+    public TelegramUser? FindUser(long id) => _users.GetValueOrDefault(id);
+
     public void SetStepForUsers(List<TelegramUser> users, UserStep step)
     {
         foreach (var user in users)

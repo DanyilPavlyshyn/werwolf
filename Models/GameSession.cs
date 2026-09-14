@@ -12,20 +12,19 @@ public class GameSession(long hostId)
     
     
     public readonly long HostId = hostId;
-    public event EventHandler<List<Player>>? OnPlayersChanged;
-    private EventHandler<List<Player>>? PlayersChangedHandler { get; set; }
+    public bool RolesAssigned { get; private set; }
     public readonly string Id = Guid.NewGuid().ToString().Substring(0, 4);
 
     public void AddPlayer(Player player)
     {
         lock (_players)
         {
-            if (_players.Contains(player)) throw new BusinessException("Player is already in this session.");
+            if (RolesAssigned) throw new BusinessException("Игра уже начинается.");
+            if (_players.Any(p => p.User.Id == player.User.Id)) throw new BusinessException("Player is already in this session.");
             if (_players.Count >= _selectedRoles.Count) throw new BusinessException("This session is already full.");
             
             player.User.SessionId = Id;
             _players.Add(player);
-            OnPlayersChanged?.Invoke(this, _players.ToList());
         }
     }
     
@@ -33,26 +32,18 @@ public class GameSession(long hostId)
     {
         lock (_players)
         {
-            var player = _players.FirstOrDefault(x => x.User == user);
+            if (RolesAssigned) throw new BusinessException("Игра уже начинается.");
+            var player = _players.FirstOrDefault(x => x.User.Id == user.Id);
 
             if (player == null) return;
             
             _players.Remove(player);
             player.User.SessionId = null;
-            OnPlayersChanged?.Invoke(this, _players.ToList());
         }
     }
     
-    public void RemovePlayer(Player player)
-    {
-        lock (_players)
-        {
-            if (!_players.Contains(player)) throw new Exception("Player is not in this session.");
-            _players.Remove(player);
-            OnPlayersChanged?.Invoke(this, _players.ToList());
-        }
-    }
-    
+    public void RemovePlayer(Player player) => RemovePlayer(player.User);
+
     public void SaveRoleSelection(List<string> roles)
     {
         roles.ForEach(r => _selectedRoles.Add(r));
@@ -60,9 +51,10 @@ public class GameSession(long hostId)
     
     public void AssignRolesToPlayers()
     {
-        if (Players.Count != _selectedRoles.Count)
+        if (RolesAssigned) return;
+        if (Players.Count == 0 || Players.Count != _selectedRoles.Count)
         {
-            throw new Exception("Количество игроков не соответствует количеству ролей.");
+            throw new BusinessException("Количество игроков не соответствует количеству ролей.");
         }
 
         var randomizedRoles = _selectedRoles.ToArray();
@@ -72,23 +64,7 @@ public class GameSession(long hostId)
         {
             Players[i].Role = randomizedRoles[i];
         }
+        RolesAssigned = true;
     }
 
-    public void AddPlayersObserver(EventHandler<List<Player>> changedHandler)
-    {
-        RemovePlayersObserver();
-        PlayersChangedHandler = changedHandler;
-        OnPlayersChanged += changedHandler;
-    }
-
-    public void RemovePlayersObserver()
-    {
-        if (PlayersChangedHandler == null)
-        {
-            return;
-        }
-
-        OnPlayersChanged -= PlayersChangedHandler;
-        PlayersChangedHandler = null;
-    }
 }

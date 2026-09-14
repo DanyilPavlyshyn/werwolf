@@ -11,13 +11,10 @@ public class ChoosingPlayModeHandler()
         {
             case { Text: "Хочу быть ведущим 📝" }:
                 return StepResult.HostModeSelected;
-                break;
             case { Text: "Хочу играть 🐺" }:
                 return StepResult.PlayerModeSelected;
-                break;
             case { Text: "Change language 🌍" }:
                 return StepResult.ChangeLanguageSelected;
-                break;
         }
         return StepResult.NoChange;
     }
