@@ -77,6 +77,12 @@ public class ChatService(
                     "Игровая сессия отменена. \n\n Захочешь еще поиграть - пиши. :)"
                 );
                 break;
+            case UserStep.SessionCancelledByHost:
+                await SendMessage(
+                    user,
+                    "Игровая сессия отменена ведущим. \n\n Захочешь еще поиграть - пиши. :)"
+                );
+                break;
             default:
                 user.SetStep(UserStep.None);
                 break;
@@ -95,6 +101,14 @@ public class ChatService(
             replyMarkup: buttons ?? new ReplyKeyboardRemove(),
             cancellationToken: cancellationToken
         );
+    }
+
+    public async Task SendSessionCancelledByHostToPlayers(List<Player> players)
+    {
+        players.ForEach(async (p) =>
+        {
+            await SendMessage(p.User, "Игра была отменена ведущим.");
+        });
     }
 
     public async Task SendPlayersAndRolesToHostAsync(GameSession gameSession)

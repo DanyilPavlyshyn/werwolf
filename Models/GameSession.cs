@@ -20,8 +20,8 @@ public class GameSession(long hostId)
     {
         lock (_players)
         {
-            if (_players.Contains(player)) throw new Exception("Player is already in this session.");
-            if (_players.Count >= _selectedRoles.Count) throw new Exception("This session is already full.");
+            if (_players.Contains(player)) throw new BusinessException("Player is already in this session.");
+            if (_players.Count >= _selectedRoles.Count) throw new BusinessException("This session is already full.");
             
             player.User.SessionId = Id;
             _players.Add(player);

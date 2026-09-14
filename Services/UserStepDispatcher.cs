@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Text.Json;
 using Werwolf_Bot.Models;
 
@@ -6,7 +5,9 @@ namespace Werwolf_Bot.Services;
 
 public static class UserStepDispatcher
 {
-    public static void SetActualStep (TelegramUser user, BotUpdate message)
+    public static void SetActualStep (
+        TelegramUser user, BotUpdate message, 
+        StepResult stepResult)
     {
         switch (user.Step)
         {
@@ -16,70 +17,66 @@ public static class UserStepDispatcher
                     : UserStep.ChoosingPlayMode);
                 break;
             case UserStep.ChoosingLanguage:
-                user.SetStep(user.Language == null 
-                    ? UserStep.ChoosingLanguage 
-                    : UserStep.ChoosingPlayMode);
+                if (stepResult == StepResult.LanguagedChanged)
+                    user.SetStep(UserStep.ChoosingPlayMode);
                 break;
             case UserStep.ChoosingPlayMode:
-                switch (message)
+                switch (stepResult)
                 {
-                    // buttons: Host, Player, ChangeLanguage
-                    // PlayModeOrLanguageChangeInputHandler
-                    case { Text: "Хочу быть ведущим 📝" }:
+                    case StepResult.HostModeSelected:
                         user.SetStep(UserStep.ChoosingRoles);
                         break;
-                    case { Text: "Хочу играть 🐺" }:
+                    case StepResult.PlayerModeSelected:
                         user.SetStep(UserStep.EnteringSessionId);
                         break;
-                    case { Text: "Change language 🌍" }:
+                    case StepResult.ChangeLanguageSelected:
                         user.SetStep(UserStep.ChoosingLanguage);
                         break;
                 }
                 break;
             case UserStep.ChoosingRoles:
-                if (message.WebData is { } data)
+                switch (stepResult)
                 {
-                    var result = JsonSerializer
-                        .Deserialize<RolesChoice>(data);
-
-                    if (result?.action == "confirmRoles")
-                    {
+                    case StepResult.HostModeSelected:
                         user.SetStep(UserStep.WaitingPlayersToJoin);
-                    }
-                    else
-                    {
+                        break;
+                    case StepResult.PlayerModeSelected:
                         user.SetStep(UserStep.ErrorByChoosingRoles);
-                    }
+                        break;
+                    case StepResult.ChangeLanguageSelected:
+                        user.SetStep(UserStep.ChoosingLanguage);
+                        break;
                 }
                 break;
             case UserStep.WaitingPlayersToJoin:
-                if (message is { Text: "Отменить игру ❌" })
-                {
+                if (stepResult is StepResult.SessionCanceled)
                     user.SetStep(UserStep.CanceledAsHost);
-                }
                 break;
             case UserStep.ReadyToStart:
-                switch (message)
+                switch (stepResult)
                 {
-                    case { Text: "Раздать карты 🃏" }:
+                    case StepResult.GameStarted:
                         user.SetStep(UserStep.StartedAsHost);
                         break;
-                    case { Text: "Отменить игру ❌" }:
+                    case StepResult.SessionCanceled:
                         user.SetStep(UserStep.CanceledAsHost);
                         break;
                 }
                 break;
             case UserStep.EnteringSessionId:
-                if (message is { Text: "Покинуть игру ❌" })
+                switch (stepResult)
                 {
-                    user.SetStep(UserStep.CanceledAsRole);
+                    case StepResult.LeavedSession:
+                        user.SetStep(UserStep.CanceledAsRole);
+                        break;
+                    case StepResult.SessionJoined:
+                        user.SetStep(UserStep.WaitingStart);
+                        break;
                 }
                 break;
             case UserStep.WaitingStart:
-                if (message is { Text: "Покинуть игру ❌" })
-                {
+                if (stepResult is StepResult.LeavedSession)
                     user.SetStep(UserStep.CanceledAsRole);
-                }
                 break;
             default:
                 user.SetStep(user.Language == null 

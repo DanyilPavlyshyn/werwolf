@@ -23,7 +23,9 @@ public enum UserStep
     StartedAsHost,
     CanceledAsHost,
     CanceledAsRole,
-    ErrorByChoosingRoles
+    ErrorByChoosingRoles,
+    SessionCancelledByHost,
+    SessionStartedByHost,
 }
 
 public class TelegramUser(
@@ -37,7 +39,7 @@ public class TelegramUser(
     public string? FirstName { get; set; } = firstName;
     public string? LastName { get; set; } = lastName;
     public string? SessionId { get; set; }
-    public UserStep Step { get; set; } = UserStep.None;
+    public UserStep Step { get; set; } = UserStep.ChoosingLanguage;
     public UserLanguage? Language { get; set; }
     
     public void SetLanguage(UserLanguage language)

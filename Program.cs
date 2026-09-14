@@ -56,9 +56,9 @@ async Task HandleUpdateAsync(ITelegramBotClient bot,
     
     try
     {
-        await stepHandler.HandleAsync(user, botUpdate);
-        UserStepDispatcher.SetActualStep(user, botUpdate);
+        var stepResult = await stepHandler.HandleAsync(user, botUpdate);
         await chatService.GetStepResponse(user);
+        UserStepDispatcher.SetActualStep(user, botUpdate, stepResult);
     }
     catch (BusinessException exception)
     {
