@@ -37,14 +37,8 @@ public static class UserStepDispatcher
             case UserStep.ChoosingRoles:
                 switch (stepResult)
                 {
-                    case StepResult.HostModeSelected:
+                    case StepResult.RolesChosenByHost:
                         user.SetStep(UserStep.WaitingPlayersToJoin);
-                        break;
-                    case StepResult.PlayerModeSelected:
-                        user.SetStep(UserStep.ErrorByChoosingRoles);
-                        break;
-                    case StepResult.ChangeLanguageSelected:
-                        user.SetStep(UserStep.ChoosingLanguage);
                         break;
                 }
                 break;
