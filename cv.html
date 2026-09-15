@@ -123,6 +123,83 @@ button,a{-webkit-tap-highlight-color:transparent}
 
 @supports (min-height:100svh){.hero{min-height:100svh}@media(max-width:900px){.hero{min-height:auto}}}
 
+
+/* Share / QR section */
+.contact-share{
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);
+  gap:28px;
+  align-items:stretch;
+  margin-top:34px;
+  text-align:left;
+}
+.contact-main{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  min-width:0;
+}
+.qr-card{
+  background:#fff;
+  color:#111;
+  border-radius:28px;
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  min-width:0;
+  box-shadow:0 12px 40px rgba(0,0,0,.18);
+}
+.qr-label{
+  margin:0;
+  font-size:12px;
+  font-weight:750;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:#6e6e73;
+}
+.qr-image{
+  width:min(230px,100%);
+  height:auto;
+  display:block;
+  background:#fff;
+  border-radius:12px;
+}
+.qr-hint{
+  margin:0!important;
+  max-width:310px!important;
+  color:#6e6e73!important;
+  font-size:14px!important;
+  line-height:1.45!important;
+  text-align:center;
+}
+.qr-url{
+  display:block;
+  max-width:100%;
+  padding:10px 12px;
+  border-radius:14px;
+  background:#f5f5f7;
+  color:#06c!important;
+  font-size:12px;
+  font-weight:650;
+  line-height:1.35;
+  text-align:center;
+  overflow-wrap:anywhere;
+}
+@media(max-width:760px){
+  .contact-share{grid-template-columns:1fr;gap:20px}
+  .contact-main{text-align:center}
+  .qr-card{padding:22px 18px}
+  .qr-image{width:min(220px,72vw)}
+}
+@media(max-width:420px){
+  .contact-share{margin-top:26px}
+  .qr-card{border-radius:22px;padding:18px 14px}
+  .qr-image{width:min(210px,74vw)}
+}
+
 @media print{@page{size:A4;margin:10mm}body{background:white;font-size:10pt}.nav,.hero-actions,.contact,footer,.portrait-glow,.mini-card{display:none!important}.hero{min-height:auto;padding:0 0 20px}.hero-grid{grid-template-columns:1fr 130px;gap:20px}h1{font-size:36pt}.hero-copy{font-size:12pt;margin-top:12px}.portrait-card{border-radius:18px;box-shadow:none;transform:none}.chapter{padding:20px 0;break-inside:avoid}.section-title{font-size:26pt}.section-sub{font-size:11pt;margin-top:10px}.focus-grid{margin-top:18px;gap:8px}.focus-card{min-height:0;padding:16px;box-shadow:none;border:1px solid #ddd}.card-icon{display:none}.focus-card h3{font-size:14pt}.focus-card p{font-size:9pt}.stack-shell{margin-top:18px;padding:18px}.stack-tabs{display:none}.skills{margin-top:0;min-height:0;gap:5px}.skill{padding:5px 7px;font-size:8pt}.job{box-shadow:none;break-inside:avoid;background:white}.job-head{padding:12px 14px}.job-role{font-size:12pt}.job-company,.job-date{font-size:8.5pt}.chev{display:none}.job-body{grid-template-rows:1fr!important}.job ul{font-size:8.5pt;padding:0 24px 12px 34px}.edu-grid{margin-top:16px;gap:8px}.info-card{padding:16px;min-height:0}.reveal{opacity:1!important;transform:none!important}}
 </style>
 </head>
@@ -139,7 +216,33 @@ button,a{-webkit-tap-highlight-color:transparent}
 <article class="job reveal"><button class="job-head" aria-expanded="false"><span><span class="job-role">Customer Support Specialist</span><span class="job-company">Tinkoff</span></span><span class="job-date">Okt 2017 – Feb 2020</span><span class="chev">+</span></button><div class="job-body"><div class="job-body-inner"><ul><li>Ganzheitliche Kundenbetreuung und Bedarfsanalyse für Bankdienstleistungen.</li><li>Deeskalation und eigenverantwortliche Bearbeitung komplexer Kundenbeschwerden in Zusammenarbeit mit internen Fachabteilungen.</li><li>Technischer Anwendersupport für Online-Banking, Banking-Apps und Zahlungsverfahren inklusive systematischer Fehleranalyse.</li><li>Dokumentation und Nachverfolgung technischer Systemstörungen sowie Multikanal-Kommunikation via E-Mail, Chat, Telefon und Post.</li></ul></div></div></article>
 </div></div></section>
 <section class="chapter" id="education"><div class="wrap"><div class="section-kicker reveal">Bildung &amp; Sprachen</div><h2 class="section-title reveal">Fundament und Kommunikation.</h2><div class="edu-grid"><article class="info-card reveal"><h3>Ausbildung</h3><div class="degree">Bachelor, Wirtschaft</div><div class="meta">RSSU · Sep 2012 – Jun 2016</div></article><article class="info-card reveal"><h3>Sprachen</h3><div class="language-row"><span>Deutsch</span><span>B2-Zertifikat, Telc · 27.12.2023</span></div><div class="language-row"><span>Weitere Sprachen</span><span>Englisch, Ukrainisch, Russisch</span></div></article></div></div></section>
-<section class="contact" id="contact"><div class="wrap"><div class="contact-card reveal"><h2>Let’s build<br>quality software.</h2><p>Software Development, Testautomatisierung und Qualitätssicherung aus einer Hand.</p><div class="contact-links"><a href="mailto:danyilpavlyshyn@gmail.com">danyilpavlyshyn@gmail.com</a><a href="tel:+4916090389469">+49 160 903 894 69</a><a href="#top">Nach oben ↑</a></div></div></div></section>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div class="contact-card reveal">
+      <div class="contact-share">
+        <div class="contact-main">
+          <h2>Let’s build<br>quality software.</h2>
+          <p>Software Development, Testautomatisierung und Qualitätssicherung aus einer Hand.</p>
+          <div class="contact-links">
+            <a href="mailto:danyilpavlyshyn@gmail.com">danyilpavlyshyn@gmail.com</a>
+            <a href="tel:+4916090389469">+49 160 903 894 69</a>
+            <a href="#top">Nach oben ↑</a>
+          </div>
+        </div>
+        <aside class="qr-card" aria-label="QR-Code zu diesem Online-Lebenslauf">
+          <div class="qr-label">Webseite teilen</div>
+          <a href="https://danyilpavlyshyn.github.io/werwolf/cv.html" target="_blank" rel="noopener" aria-label="Online-Lebenslauf öffnen">
+            <img class="qr-image" src="data:image/png;base64,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" alt="QR-Code für https://danyilpavlyshyn.github.io/werwolf/cv.html" width="492" height="492">
+          </a>
+          <p class="qr-hint">QR-Code scannen, um diesen interaktiven Lebenslauf auf einem anderen Gerät zu öffnen.</p>
+          <a class="qr-url" href="https://danyilpavlyshyn.github.io/werwolf/cv.html" target="_blank" rel="noopener">danyilpavlyshyn.github.io/werwolf/cv.html</a>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main><footer>© <span id="year"></span> Danyil Pavlyshyn · One-page CV</footer>
 <script>
 (function(){
