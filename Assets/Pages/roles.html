@@ -192,6 +192,7 @@
         /* Zustand, wenn sichtbar */
         #global-card-overlay.visible {
             opacity: 1;
+            pointer-events: auto;
         }
 
         #global-card-overlay.visible img {
@@ -219,10 +220,10 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    async function loadRolesData() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const lang = urlParams.get('language') || 'en';
+    const urlParams = new URLSearchParams(window.location.search);
+    const lang = urlParams.get('language') || 'en';
 
+    async function loadRolesData() {
         // Beide Dateien parallel laden
         const [confRes, i18nRes] = await Promise.all([
             fetch('../conf.json'),
@@ -269,9 +270,14 @@
                 <span class="role-icon">${role.icon}</span>
                 <span class="role-title">${role.title}</span>
             </div>
-            <button class="card-preview-btn" data-card-src="../Cards/ru/${role.dataId}.png">❓</button>
+            <button class="card-preview-btn" data-card-src="../Cards/${lang}/${role.dataId}.png">❓</button>
             <div class="checkbox" id="check-${role.id}"></div>
         `;
+
+        card.querySelector('.card-preview-btn').addEventListener('click', (event) => {
+            event.stopPropagation();
+            showCardPreview(event.currentTarget, role.title);
+        });
         
         listContainer.appendChild(card);
     });
@@ -305,35 +311,25 @@
         tg.sendData(JSON.stringify(payload));
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // 1. Erstelle das Overlay-Element einmalig im Body
-        const overlay = document.createElement('div');
-        overlay.id = 'global-card-overlay';
-        const img = document.createElement('img');
-        overlay.appendChild(img);
-        document.body.appendChild(overlay);
+    // Direkt initialisieren: DOMContentLoaded kann nach dem await bereits vorbei sein.
+    const overlay = document.createElement('div');
+    overlay.id = 'global-card-overlay';
+    const img = document.createElement('img');
+    overlay.appendChild(img);
+    document.body.appendChild(overlay);
 
-        const rolesList = document.querySelector('.roles-list');
+    function showCardPreview(button, title) {
+        img.src = button.dataset.cardSrc;
+        img.alt = title;
+        overlay.classList.add('visible');
+    }
 
-        // Hover starten: Bild setzen & Overlay anzeigen
-        rolesList.addEventListener('mouseover', (e) => {
-            const btn = e.target.closest('.card-preview-btn');
-            if (!btn) return;
-
-            const imgSrc = btn.getAttribute('data-card-src');
-            if (!imgSrc) return;
-
-            img.src = imgSrc;
-            overlay.classList.add('visible');
-        });
-
-        // Hover beenden: Overlay verstecken
-        rolesList.addEventListener('mouseout', (e) => {
-            const btn = e.target.closest('.card-preview-btn');
-            if (!btn) return;
-
-            overlay.classList.remove('visible');
-        });
+    // Ein erneutes Tippen oder Escape schließt die Vorschau.
+    overlay.addEventListener('click', () => {
+        overlay.classList.remove('visible');
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') overlay.classList.remove('visible');
     });
 </script>
 </body>

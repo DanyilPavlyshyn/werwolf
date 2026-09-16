@@ -45,8 +45,8 @@
       "nightPrio": 0
     },
     "wildekind": {
-      "title": "Wild Child",
-      "description": "At the beginning of the game, chooses an idol. As long as the idol is alive, fights on the villagers' side. If the idol dies, the Wild Child turns into a full-fledged werewolf.",
+      "title": "Wild",
+      "description": "At the beginning of the game, chooses an idol. As long as the idol is alive, fights on the villagers' side. If the idol dies, the Wild turns into a full-fledged werewolf.",
       "nightPrio": 1,
       "onlyFirstNight": true
     },

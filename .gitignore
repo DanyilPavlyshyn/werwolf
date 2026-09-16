@@ -12,5 +12,12 @@ obj/
 # macOS Systemdateien
 .DS_Store
 
-#Test data
-Werwolf_Bot.Tests/
+#Scripts
+deploy.sh
+
+#git
+.gitignore
+
+#other
+lebenslauf.pdf
+cv.html
