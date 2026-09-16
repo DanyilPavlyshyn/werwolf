@@ -81,6 +81,8 @@
     }
   },
   "messeges": {
+    "page.chooseRoles": "Choose roles for the game:",
+    "page.acceptButton": "Confirm",
     "welcome": "Hi! Do you want to play or host the game?",
     "button.chooseHost": "I want to be the host 📝",
     "pleaseChooseRoles": "Great! Now you need to choose the roles. The number of roles must match the number of players.",

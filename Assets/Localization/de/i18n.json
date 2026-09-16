@@ -81,6 +81,8 @@
     }
   },
   "messeges": {
+    "page.chooseRoles": "Wähle die Rollen für das Spiel:",
+    "page.acceptButton": "Bestätigen",
     "welcome": "Hallo! Möchtest du mitspielen oder die Spielleitung übernehmen?",
     "button.chooseHost": "Ich möchte die Spielleitung übernehmen 📝",
     "pleaseChooseRoles": "Super, jetzt musst du die Rollen auswählen. Die Anzahl der Rollen muss der Anzahl der Spieler entsprechen.",

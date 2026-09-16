@@ -208,13 +208,13 @@
 </head>
 <body>
 
-<h2>Выберите роли для игры:</h2>
+<h2 id="chooseRoleTitle">Choose the roles for game:</h2>
 
 <div class="roles-list" id="rolesList">
     <!-- Rollen-Liste wird dynamisch gerendert -->
 </div>
 
-<button class="confirm-btn" id="confirmRolesButton" disabled>Подтвердить</button>
+<button class="confirm-btn" id="confirmRolesButton" disabled>Accept</button>
 
 <script type="module">
     const tg = window.Telegram.WebApp;
@@ -232,6 +232,9 @@
 
         const confData = await confRes.json();
         const i18nData = await i18nRes.json();
+
+        document.getElementById('confirmRolesButton').textContent = i18nData.messeges["page.acceptButton"];
+        document.getElementById('chooseRoleTitle').textContent = i18nData.messeges["page.chooseRoles"];
 
         const rolesData = confData.roles.map(roleConf => {
             const rolei18n = i18nData.roles?.[roleConf.dataId] || {};
